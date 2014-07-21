@@ -28,14 +28,14 @@ class Pyfm:
         
     def _play(self):
         while True:
-            _song = self.current_song_list.popleft()                
+            _song = self.current_play_list.popleft()                
             self.current_song = Song(_song)
             
             # Currently playing the last song in queue
             if len(self.current_play_list) == 0:
                 # Extend playlist
                 playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
-                self.current_song_list.extend(deque(playing_list))
+                self.current_play_list.extend(deque(playing_list))
                 
             self.player.play(self.current_song)
             # player process exit unsucessful
@@ -43,7 +43,7 @@ class Pyfm:
                 print("Something wrong happens while playing...")
                 return 
                 
-            self.player.bye_song(self.current_song.sid, self.current_channel)
+            self.douban.bye_song(self.current_song.sid, self.current_channel)
             
     def start(self):
         # self._list_channels()

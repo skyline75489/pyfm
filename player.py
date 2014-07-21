@@ -15,6 +15,7 @@ class Player:
         # -C(control) enables the keyboard control
         print("Now playing: " + str(self.current_song.artist) + " - " + str(self.current_song.title))
         self.player_process = subprocess.Popen(["mpg123", "-q", "-C", self.current_song.url])
+        self.player_process.wait()
         self.return_code = self.player_process.returncode
         self.is_playing = True
         
