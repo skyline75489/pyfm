@@ -21,7 +21,6 @@ class Player:
     def stop(self):
         if self.player_process is None:
             return
-            
         try:
             self.player_process.terminate()
         except:
