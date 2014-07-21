@@ -87,10 +87,10 @@ class Douban:
             songs = r.json()['song']
             return songs
             
-    def get_playing_list(self, channel, kbps=64):
+    def get_playing_list(self, sid, channel, kbps=64):
         _type = self._get_type('playing')
         payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
-                'expire': self.expire, 'token': self.token, 'sid': '', 'h': '','channel': channel, 'kbps': kbps, 'type': _type}
+                'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '','channel': channel, 'kbps': kbps, 'type': _type}
         
         r = requests.get(self.api_url, params=payload)
         if r.json()['r'] == 0:
@@ -102,22 +102,22 @@ class Douban:
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         return r
     
-    def _unrate_song(self, sid, channel):
+    def unrate_song(self, sid, channel):
         _type = self._get_type('unrate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         return r
         
-    def _skip_song(self, sid, channel):
+    def skip_song(self, sid, channel):
         _type = self._get_type('skip')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         return r
         
-    def _end_song(self, sid, channel):
+    def end_song(self, sid, channel):
         _type = self._get_type('end')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         return r
         
-    def _bye_song(self, sid, channel):
+    def bye_song(self, sid, channel):
         _type = self._get_type('bye')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         return r
