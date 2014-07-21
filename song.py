@@ -10,6 +10,7 @@ class Song:
         
         self.like = True and song_json['like'] == 1 or False
         self.url = song_json['url']
+        self.ssid = song_json['ssid']
         self.sid = song_json['sid']
         self.aid = song_json['aid']        
     

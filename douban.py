@@ -40,8 +40,8 @@ class Douban:
             
             self.email = config['email']
             self.password = config['password']
-        except (IOError, KeyError):
-            raise Exception("Config not found")
+        except KeyError:
+            print("Incorrect config file.")
         
         try:
             self.user_name = config['user_name']
