@@ -16,7 +16,7 @@ class Douban:
             'new': 'n',
             'playing': 'p',
             'rate': 'r',
-            'unrate': 'u'
+            'unrate': 'u',
             'end': 'e',
             'bye': 'b',
             'skip': 's',
@@ -68,7 +68,7 @@ class Douban:
         except IOError:
             raise Exception("Unable to write config file")
     
-    def _do_api_request(self, sid=None, channel=None, kbps=64, _type):
+    def _do_api_request(self, _type, sid=None, channel=None, kbps=64):
         payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
                 'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '','channel': channel, 'type': _type}
         
