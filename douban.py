@@ -34,14 +34,16 @@ class Douban:
         self._load_config()
 
     def _load_config(self):
+        config = None
         try:
             f = open('config.json', 'r')
             config = json.load(f)
             
             self.email = config['email']
             self.password = config['password']
-        except KeyError:
-            print("Incorrect config file.")
+        except (IOError, KeyError):
+            print("Config File not found. Personal FM unabled")
+            return 
         
         try:
             self.user_name = config['user_name']

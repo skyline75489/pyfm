@@ -4,6 +4,7 @@ class Song:
         self.title = song_json['title']
         self.album_title = song_json['albumtitle']
         self.length_in_sec = song_json['length']
+        # Deal with the length of the song
         self.length_minute = divmod(self.length_in_sec, 60)[0]
         self.length_sec = divmod(self.length_in_sec, 60)[1]
         self.length_in_str = str(self.length_minute) + ":" + str(self.length_sec)
