@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
+import json
 
 class Douban:
     """ Douban class, provides some APIs.
@@ -21,27 +22,51 @@ class Douban:
             'skip': 's',
         }
         
+        self.email = None
+        self.password = None
+        
         self.user_id = None
         self.expire = None
         self.token = None
         self.user_name = None
+        
         self.channels = None
-        self.email = None
-        self.password = None
+        self._load_config()
+
+    def _load_config(self):
+        try:
+            f = open('config.json', 'r')
+            config = json.load(f)
+            
+            self.email = config['email']
+            self.password = config['password']
+        except (IOError, KeyError):
+            raise Exception("Config not found")
         
         try:
-            import config
-        except ImportError:
-            pass
-        else:
-            self.email = config.EMAIL
-            self.password = config.PASSWORD
-
-    def login(self):
-        # get password
-        import getpass
-        self.email = input("Please input your email: ")
-        self.password = getpass.getpass('password: ')
+            self.user_name = config['user_name']
+            self.user_id = config['user_id']
+            self.expire = config['expire']
+            self.token = config['token']
+        except KeyError:
+            r = self._do_login()
+            if r:
+                self._save_config()
+         
+    def _save_config(self):
+        f = None
+        try:
+            f = open('config.json', 'w')
+            json.dump({
+                'email': self.email,
+                'password': self.password,
+                'user_name': self.user_name,
+                'user_id': self.user_id,
+                'expire': self.expire,
+                'token': self.token
+            }, f)
+        except IOError:
+            raise Exception("Unable to write config file")
     
     def _do_api_request(self, sid=None, channel=None, kbps=64, _type):
         payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
@@ -50,16 +75,14 @@ class Douban:
         r = requests.get(self.api_url, params=payload)
         return r
         
-    def user_login(self):
-        if not (hasattr(self, 'email') and hasattr(self, 'password')):
-            self.login()
+    def _do_login(self):
         payload = {'email': self.email, 'password': self.password, 'app_name': self.app_name, 'version': self.version}
         r = requests.post(self.login_url, params=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         if r.json()['r'] == 0:
+            self.user_name = r.json()['user_name']
             self.user_id = r.json()['user_id']
             self.expire = r.json()['expire']
             self.token = r.json()['token']
-            self.user_name = r.json()['user_name']
             return True
         else:
             return False
