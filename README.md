@@ -1,7 +1,11 @@
 豆瓣FM命令行播放器
 ==================
 
-使用mpg123进行解码，豆瓣FM API来自 https://github.com/josephok/doubanfm 。
+主要参考 https://github.com/josephok/doubanfm 和 https://github.com/zonyitoo/doubanfm-qt。 在josephok项目的基础上对代码进行了完全的重构。
+
+豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API
+
+使用mpg123进行解码，
 
 尚在开发中。
 
@@ -11,6 +15,8 @@
 
 * Linux/Mac OS X
 * Python 3
+
+只在Mac OS X上的Python 3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
 
 ## 依赖
 
@@ -27,8 +33,6 @@
 
 ## 使用
 
-    python pyfm.py
+    python3 pyfm.py
 
-目前默认播放的是欧美频道
-
-使用mpg123的内置控制，按f或q跳过当前歌曲。
+目前默认播放的是欧美频道，使用mpg123的内置控制，按f或q跳过当前歌曲。
