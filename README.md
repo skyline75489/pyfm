@@ -1,9 +1,11 @@
 豆瓣FM命令行播放器
 ==================
 
-主要参考 https://github.com/josephok/doubanfm 和 https://github.com/zonyitoo/doubanfm-qt。 在josephok项目的基础上对代码进行了完全的重构。
+主要参考 https://github.com/josephok/doubanfm 和 https://github.com/zonyitoo/doubanfm-qt。 在josephok项目的基础上对代码进行了完全的重构，并加入了Last.fm Scrobble功能。
 
-豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API
+豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API。
+
+Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其适应 Python 3 和 requests 。
 
 使用mpg123进行解码，
 
