@@ -108,7 +108,9 @@ class Pyfm:
                 print("Something wrong happens while playing...")
                 return 
                 
-            if self.scrobbling:
+            # Scrobble the track if scrobbling is enabled 
+            # and total playback time of the track > 30s
+            if self.scrobbling and self.current_song.length_in_sec > 30:
                 self.scrobbler.submit(self.current_song.artist, self.current_song.title,
                                       self.current_song.album_title, self.current_song.length_in_sec)
                 
