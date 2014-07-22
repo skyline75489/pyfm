@@ -3,20 +3,74 @@ import os
 import sys
 import subprocess
 import time
+import json
 from collections import deque
 
 from douban import Douban
 from song import Song
 from player import Player
+from scrobbler import Scrobbler
 
 class Pyfm:
     def __init__(self):
-        self.douban = Douban()
+        self._load_config()
+        self.douban = Douban(self.email, self.password, self.user_id, self.expire, self.token, self.user_name)
         self.player = Player()
         self.current_channel = 0
         self.current_song = None
         self.current_play_list = None
         
+        if self.scrobbling:
+            self.scrobbler = Scrobbler(self.last_fm_username, self.last_fm_password)
+            self.scrobbler.handshake()
+        
+
+    def _load_config(self):
+        self.email = None
+        self.password = None
+        self.user_id = None
+        self.expire = None
+        self.token = None
+        self.user_name = None
+        self.lasf_fm_username = None
+        self.last_fm_password = None
+        self.scrobbling = True
+        
+        config = None
+        try:
+            f = open('config.json', 'r')
+            config = json.load(f)
+            
+            self.email = config['email']
+            self.password = config['password']
+            
+        except KeyError:
+            print("Douban account not found. Personal FM disabled.")
+        
+        try: 
+            self.last_fm_username = config['last_fm_username']
+            self.last_fm_password = config['last_fm_password']
+        except KeyError:
+            self.scrobbing = False
+            print("Last.fm account not found. Scrobbling disabled.")
+         
+    def _save_config(self):
+        f = None
+        try:
+            f = open('config.json', 'w')
+            json.dump({
+                'email': self.email,
+                'password': self.password,
+                'user_name': self.user_name,
+                'user_id': self.user_id,
+                'expire': self.expire,
+                'token': self.token,
+                'last_fm_username': self.last_fm_username,
+                'last_fm_password': self.last_fm_password
+            }, f)
+        except IOError:
+            raise Exception("Unable to write config file")
+            
     def _list_channels(self):
         channels = self.douban.get_channels()
         for channel in channels:
@@ -30,10 +84,14 @@ class Pyfm:
         while True:
             _song = self.current_play_list.popleft()                
             self.current_song = Song(_song)
+            if self.scrobbling:
+                self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
+                                           self.current_song.album_title, self.current_song.length_in_sec)
             
             # Currently playing the last song in queue
             if len(self.current_play_list) == 0:
                 # Extend playlist
+                print("Extending playlist...")
                 playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
                 self.current_play_list.extend(deque(playing_list))
                 
@@ -43,7 +101,11 @@ class Pyfm:
                 print("Something wrong happens while playing...")
                 return 
                 
-            self.douban.bye_song(self.current_song.sid, self.current_channel)
+            if self.scrobbling:
+                self.scrobbler.submit(self.current_song.artist, self.current_song.title,
+                                      self.current_song.album_title, self.current_song.length_in_sec)
+                
+            self.douban.end_song(self.current_song.sid, self.current_channel)
             
     def start(self):
         # self._list_channels()
