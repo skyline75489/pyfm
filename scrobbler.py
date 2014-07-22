@@ -71,7 +71,7 @@ class Scrobbler():
 
         return True
 
-    def now_playing(self, artist, title, album=None, length=None, tracknumber=None, mb_trackid=None):
+    def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
         logger("Now playing %s - %s" %(artist, title))
         
         payload = {
@@ -97,21 +97,21 @@ class Scrobbler():
             logger('Now playing FAILED')
             return False
 
-    def submit(self, artist, title, album=None, length=None, tracknumber=None, mb_trackid=None):
+    def submit(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
         logger("Submitting %s - %s" %(artist, title))
 
-        timestamp = int(time()).__str__()
+        timestamp = int(time())
         
         payload = {
             "s": self.session_id,
             "a[0]": artist,
             "t[0]": title,
-            "i[0]": timestamp-int(length),
+            "i[0]": timestamp-length,
             "o[0]": "R",
             "r[0]": "",
             "l[0]": length,
             "b[0]": album,
-            "n[0]": tracknuber,
+            "n[0]": tracknumber,
             "m[0]": mb_trackid
         }
         
