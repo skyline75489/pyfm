@@ -1,3 +1,0 @@
-# user info
-EMAIL = ''
-PASSWORD = ''
