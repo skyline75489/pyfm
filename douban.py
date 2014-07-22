@@ -39,7 +39,7 @@ class Douban:
         r = requests.get(self.api_url, params=payload)
         return r
         
-    def _do_login(self):
+    def do_login(self):
         payload = {'email': self.email, 'password': self.password, 'app_name': self.app_name, 'version': self.version}
         r = requests.post(self.login_url, params=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         if r.json()['r'] == 0:

@@ -22,9 +22,14 @@ class Pyfm:
         
         if self.scrobbling:
             self.scrobbler = Scrobbler(self.last_fm_username, self.last_fm_password)
-            self.scrobbler.handshake()
+            r =  self.scrobbler.handshake()
+            if r:
+                print("Last.FM Logged in.")
+        if self.douban_account:
+            r = self.douban.do_login()
+            if r:
+                print("Douban Logged in.")
         
-
     def _load_config(self):
         self.email = None
         self.password = None
@@ -35,6 +40,7 @@ class Pyfm:
         self.lasf_fm_username = None
         self.last_fm_password = None
         self.scrobbling = True
+        self.douban_account = True
         
         config = None
         try:
@@ -45,6 +51,7 @@ class Pyfm:
             self.password = config['password']
             
         except KeyError:
+            self.douban_account = False
             print("Douban account not found. Personal FM disabled.")
         
         try: 
