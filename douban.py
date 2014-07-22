@@ -6,7 +6,7 @@ import json
 class Douban:
     """ Douban class, provides some APIs.
     """
-    def __init__(self):
+    def __init__(self, email, password, user_id=None, expire=None, token=None, user_name=None):
         self.login_url = 'http://www.douban.com/j/app/login'
         self.channel_url = 'http://www.douban.com/j/app/radio/channels'
         self.api_url = 'http://www.douban.com/j/app/radio/people'
@@ -22,53 +22,15 @@ class Douban:
             'skip': 's',
         }
         
-        self.email = None
-        self.password = None
+        self.email = email
+        self.password = password
         
-        self.user_id = None
-        self.expire = None
-        self.token = None
-        self.user_name = None
+        self.user_id = user_id
+        self.expire = expire
+        self.token = token
+        self.user_name = user_name
         
         self.channels = None
-        self._load_config()
-
-    def _load_config(self):
-        config = None
-        try:
-            f = open('config.json', 'r')
-            config = json.load(f)
-            
-            self.email = config['email']
-            self.password = config['password']
-        except (IOError, KeyError):
-            print("Config File not found. Personal FM unabled")
-            return 
-        
-        try:
-            self.user_name = config['user_name']
-            self.user_id = config['user_id']
-            self.expire = config['expire']
-            self.token = config['token']
-        except KeyError:
-            r = self._do_login()
-            if r:
-                self._save_config()
-         
-    def _save_config(self):
-        f = None
-        try:
-            f = open('config.json', 'w')
-            json.dump({
-                'email': self.email,
-                'password': self.password,
-                'user_name': self.user_name,
-                'user_id': self.user_id,
-                'expire': self.expire,
-                'token': self.token
-            }, f)
-        except IOError:
-            raise Exception("Unable to write config file")
     
     def _do_api_request(self, _type, sid=None, channel=None, kbps=64):
         payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
