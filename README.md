@@ -33,6 +33,14 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
     # on Mac OS X with Homebrew
     brew install mpg123
 
+## 配置
+    {
+        "email": 豆瓣用户名,
+        "password": 豆瓣密码,
+        "last_fm_username": Last.fm用户名,
+        "last_fm_password": Last.fm密码
+    }
+
 ## 使用
 
     python3 pyfm.py
