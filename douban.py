@@ -87,26 +87,46 @@ class Douban:
     def rate_song(self, sid, channel):
         _type = self._get_type('rate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
-        return r
+        if r.json()['r'] == 0:
+            return True
+        else:
+            print("Error:" + r.json()['err'])
+            return False
     
     def unrate_song(self, sid, channel):
         _type = self._get_type('unrate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
-        return r
+        if r.json()['r'] == 0:
+            return True
+        else:
+            print("Error:" + r.json()['err'])
+            return False
         
     def skip_song(self, sid, channel):
         _type = self._get_type('skip')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
-        return r
+        if r.json()['r'] == 0:
+            return True
+        else:
+            print("Error:" + r.json()['err'])
+            return False
         
     def end_song(self, sid, channel):
         _type = self._get_type('end')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
-        return r
+        if r.json()['r'] == 0:
+            return True
+        else:
+            print("Error:" + r.json()['err'])
+            return False
         
     def bye_song(self, sid, channel):
         _type = self._get_type('bye')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
-        return r
+        if r.json()['r'] == 0:
+            return True
+        else:
+            print("Error:" + r.json()['err'])
+            return False
         
         
