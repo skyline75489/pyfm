@@ -5,7 +5,7 @@
 
 豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API。
 
-Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其适应 Python 3 和 requests 。
+Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其同时适应 Python 2 和 Python 3 以及 requests 。
 
 使用mpg123进行解码，
 
@@ -16,9 +16,9 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
 ## 运行环境
 
 * Linux/Mac OS X
-* Python 3
+* Python 2.7, 3.4
 
-只在Mac OS X上的Python 3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
+只在Mac OS X上的Python 2.7/3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
 
 ## 依赖
 
@@ -27,22 +27,23 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
 
 ## 安装依赖
 
-    pip3 install requests
+    pip install requests
     # on Linux with apt-get
     sudo apt-get install mpg123
     # on Mac OS X with Homebrew
     brew install mpg123
+    
+## 配置文件
 
-## 配置
     {
         "email": 豆瓣用户名,
         "password": 豆瓣密码,
         "last_fm_username": Last.fm用户名,
-        "last_fm_password": Last.fm密码
+        "last_fm_password": Last.fm密码    
     }
-
+    
 ## 使用
 
-    python3 pyfm.py
+    python pyfm.py
 
 目前默认播放的是欧美频道，使用mpg123的内置控制，按f或q跳过当前歌曲。
