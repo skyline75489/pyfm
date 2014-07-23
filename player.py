@@ -12,9 +12,9 @@ class Player:
         self.current_song = song
         
         print("Now playing: ")
-        print("Artist: "+ str(self.current_song.artist))
-        print("Title: " + str(self.current_song.title))
-        print("Album: " + str(self.current_song.album_title))
+        print("Artist: "+ self.current_song.artist)
+        print("Title: " + self.current_song.title)
+        print("Album: " + self.current_song.album_title)
         
         # using mpg123 to play the track
         # -q(quiet) remove the output to stdout
