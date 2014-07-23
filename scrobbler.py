@@ -9,8 +9,7 @@ debug = True
 
 def logger(message):
     if debug:
-        print('[ScrobblerPlugin]')
-        print(message)
+        print('[Scrobbler]' + message)
         
 class Scrobbler():
 
@@ -87,8 +86,6 @@ class Scrobbler():
         r = requests.post(self.now_playing_url, params=payload)
         resp = r.text
 
-        logger(resp)
-
         if resp.startswith("OK"):
             logger('Now playing OK')
             return True
@@ -117,7 +114,6 @@ class Scrobbler():
         
         r = requests.post(self.submission_url, params=payload)
         resp = r.text
-        logger(resp)
 
         if resp.startswith("OK"):
             logger("Submitting OK")

@@ -95,11 +95,12 @@ class Pyfm:
                 self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
                                            self.current_song.album_title, self.current_song.length_in_sec)
             
-            # Currently playing the last song in queue
-            if len(self.current_play_list) == 0:
+            # Currently playing the second last song in queue
+            if len(self.current_play_list) == 1:
                 # Extend playlist
                 print("Extending playlist...")
                 playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
+                print("Get {0} more tracks".format(len(playing_list)))
                 self.current_play_list.extend(deque(playing_list))
                 
             self.player.play(self.current_song)
