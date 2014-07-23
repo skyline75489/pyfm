@@ -10,10 +10,15 @@ class Player:
         
     def play(self, song):
         self.current_song = song
-        # using mpg123 to play music
-        # -q(quiet) remove the output in stdout
+        
+        print("Now playing: ")
+        print("Artist: "+ str(self.current_song.artist))
+        print("Title: " + str(self.current_song.title))
+        print("Album: " + str(self.current_song.album_title))
+        
+        # using mpg123 to play the track
+        # -q(quiet) remove the output to stdout
         # -C(control) enables the keyboard control
-        print("Now playing: " + str(self.current_song.artist) + " - " + str(self.current_song.title))
         self.player_process = subprocess.Popen(["mpg123", "-q", "-C", self.current_song.url])
         self.player_process.wait()
         self.return_code = self.player_process.returncode
