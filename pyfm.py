@@ -26,6 +26,7 @@ class Doubanfm:
         self.ui_channel_list = [str(l['channel_id']) + ' ' + l['name'] for l in self.channels]
         self.palette = [('channel', 'default,bold', 'default')]
         self.selected_button = None
+        self.main_loop = None
         
         if self.scrobbling:
             self.scrobbler = Scrobbler(self.last_fm_username, self.last_fm_password)
@@ -106,40 +107,45 @@ class Doubanfm:
         self.current_channel = channel
         self.current_play_list = deque(self.douban.get_new_play_list(self.current_channel))
         
-    def _play(self):
-        while True:
-            _song = self.current_play_list.popleft()                
-            self.current_song = Song(_song)
-            self.selected_button.set_label(self.selected_button.label + '          '+
-                                            self.current_song.artist + ' - ' + 
-                                            self.current_song.title)
-            if self.scrobbling:
-                self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
-                                           self.current_song.album_title, self.current_song.length_in_sec)
-            
-            # Currently playing the second last song in queue
-            if len(self.current_play_list) == 1:
-                # Extend playlist
-                # print("Extending playlist...")
-                playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
-                # print("Get {0} more tracks".format(len(playing_list)))
-                self.current_play_list.extend(deque(playing_list))
-                
-            self.player.play(self.current_song)
-            
-            while self.player.player_process.poll() is None:
-                time.sleep(2)
-            # Scrobble the track if scrobbling is enabled 
-            # and total playback time of the track > 30s
-            if self.scrobbling and self.current_song.length_in_sec > 30:
-                self.scrobbler.submit(self.current_song.artist, self.current_song.title,
-                                      self.current_song.album_title, self.current_song.length_in_sec)
-                
-            self.douban.end_song(self.current_song.sid, self.current_channel)
+    def _play_track(self):
+        _song = self.current_play_list.popleft()                
+        self.current_song = Song(_song)
+        self.main_loop.set_alarm_in(self.current_song.length_in_sec + 1,
+                                   self.next_song, None);
+        self.selected_button.set_label(self.selected_button.label + '          '+
+                                        self.current_song.artist + ' - ' + 
+                                        self.current_song.title)
+        if self.scrobbling:
+            self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
+                                       self.current_song.album_title, self.current_song.length_in_sec)
         
+        # Currently playing the second last song in queue
+        if len(self.current_play_list) == 1:
+            # Extend playlist
+            # print("Extending playlist...")
+            playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
+            # print("Get {0} more tracks".format(len(playing_list)))
+            self.current_play_list.extend(deque(playing_list))
+            
+        self.player.play(self.current_song)
+        
+        # Scrobble the track if scrobbling is enabled 
+        # and total playback time of the track > 30s
+        if self.scrobbling and self.current_song.length_in_sec > 30:
+            self.scrobbler.submit(self.current_song.artist, self.current_song.title,
+                                  self.current_song.album_title, self.current_song.length_in_sec)
+            
+        self.douban.end_song(self.current_song.sid, self.current_channel)
+    
+    def next_song(self, loop, user_data):
+        self.player.player_process.poll()
+        if self.player.player_process.returncode is not None:
+            self._play_track()
+            
     def start(self):
-        urwid.MainLoop(self.ChannelListBox(self.ui_channel_list), self.palette, handle_mouse=False).run()
-        
+        self.main_loop = urwid.MainLoop(self.ChannelListBox(self.ui_channel_list), self.palette, handle_mouse=False)
+        self.main_loop.run()
+    
     def channel(self, channel):
         return urwid.Button((channel))
 
@@ -158,7 +164,7 @@ class Doubanfm:
         if self.selected_button != None and button != self.selected_button:
             self.selected_button.set_label(self.selected_button.label[0:7].strip())
         self.selected_button = button
-        self._play()
+        self._play_track()
 
 class MyListBox(urwid.ListBox):
         def keypress(self, size, key):
