@@ -6,12 +6,14 @@ import time
 import json
 from collections import deque
 
+import urwid
+
 from douban import Douban
 from song import Song
 from player import Player
 from scrobbler import Scrobbler
 
-class Pyfm:
+class Doubanfm:
     def __init__(self):
         self._load_config()
         self.douban = Douban(self.email, self.password, self.user_id, self.expire, self.token, self.user_name)
@@ -19,16 +21,26 @@ class Pyfm:
         self.current_channel = 0
         self.current_song = None
         self.current_play_list = None
+        self.get_channels()
+        
+        self.ui_channel_list = [str(l['channel_id']) + ' ' + l['name'] for l in self.channels]
+        self.palette = [('channel', 'default,bold', 'default')]
+        self.selected_button = None
         
         if self.scrobbling:
             self.scrobbler = Scrobbler(self.last_fm_username, self.last_fm_password)
             r =  self.scrobbler.handshake()
             if r:
-                print("Last.FM Logged in.")
+                print("Last.FM logged in.")
+            else:
+                print("Last.FM login failed")
         if self.douban_account:
-            r = self.douban.do_login()
+            r, err = self.douban.do_login()
             if r:
-                print("Douban Logged in.")
+                print("Douban logged in.")
+                self._save_cache()
+            else:
+                print("Douban login failed: " + err)
         
     def _load_config(self):
         self.email = None
@@ -41,8 +53,10 @@ class Pyfm:
         self.last_fm_password = None
         self.scrobbling = True
         self.douban_account = True
+        self.channels = None
         
         config = None
+        token = None
         try:
             f = open('config.json', 'r')
             config = json.load(f)
@@ -60,28 +74,33 @@ class Pyfm:
         except KeyError:
             self.scrobbing = False
             print("Last.fm account not found. Scrobbling disabled.")
+            
+        try:
+            f = open('channels.json', 'r')
+            self.channels = json.load(f)
+            print("Load channel file.")
+        except FileNotFoundError:
+            print("Channels file not found.")
          
-    def _save_config(self):
+    def _save_cache(self):
         f = None
         try:
-            f = open('config.json', 'w')
+            f = open('cache.json', 'w')
+            f2 = open('channels.json', 'w')
             json.dump({
-                'email': self.email,
-                'password': self.password,
-                'user_name': self.user_name,
-                'user_id': self.user_id,
-                'expire': self.expire,
-                'token': self.token,
-                'last_fm_username': self.last_fm_username,
-                'last_fm_password': self.last_fm_password
+                'user_name': self.douban.user_name,
+                'user_id': self.douban.user_id,
+                'expire': self.douban.expire,
+                'token': self.douban.token
             }, f)
+            json.dump(self.channels, f2)
         except IOError:
-            raise Exception("Unable to write config file")
+            raise Exception("Unable to write cache file")
             
-    def _list_channels(self):
-        channels = self.douban.get_channels()
-        for channel in channels:
-            print(str(channel['seq_id']) + " " + str(channel['name']))
+    def get_channels(self):
+        if self.channels is None:
+            self.channels = self.douban.get_channels()
+        return self.channels
     
     def _choose_channel(self, channel):
         self.current_channel = channel
@@ -91,6 +110,9 @@ class Pyfm:
         while True:
             _song = self.current_play_list.popleft()                
             self.current_song = Song(_song)
+            self.selected_button.set_label(self.selected_button.label + '          '+
+                                            self.current_song.artist + ' - ' + 
+                                            self.current_song.title)
             if self.scrobbling:
                 self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
                                            self.current_song.album_title, self.current_song.length_in_sec)
@@ -98,17 +120,15 @@ class Pyfm:
             # Currently playing the second last song in queue
             if len(self.current_play_list) == 1:
                 # Extend playlist
-                print("Extending playlist...")
+                # print("Extending playlist...")
                 playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
-                print("Get {0} more tracks".format(len(playing_list)))
+                # print("Get {0} more tracks".format(len(playing_list)))
                 self.current_play_list.extend(deque(playing_list))
                 
             self.player.play(self.current_song)
-            # player process exit unsucessful
-            if self.player.return_code != 0:
-                print("Something wrong happens while playing...")
-                return 
-                
+            
+            while self.player.player_process.poll() is None:
+                time.sleep(2)
             # Scrobble the track if scrobbling is enabled 
             # and total playback time of the track > 30s
             if self.scrobbling and self.current_song.length_in_sec > 30:
@@ -116,13 +136,43 @@ class Pyfm:
                                       self.current_song.album_title, self.current_song.length_in_sec)
                 
             self.douban.end_song(self.current_song.sid, self.current_channel)
-            
+        
     def start(self):
-        # self._list_channels()
-        self._choose_channel(2)
+        urwid.MainLoop(self.ChannelListBox(self.ui_channel_list), self.palette, handle_mouse=False).run()
+        
+    def channel(self, channel):
+        return urwid.Button((channel))
+
+    def ChannelListBox(self, channel_list):
+        body = [urwid.Text('豆瓣FM'), urwid.Divider()]
+        for c in channel_list:
+                _channel = self.channel(c)
+                urwid.connect_signal(_channel, 'click', self.channel_chosen, c)
+                body.append(urwid.AttrMap(_channel, None, focus_map="channel"))
+        return MyListBox(urwid.SimpleFocusListWalker(body))
+
+    def channel_chosen(self, button, choice):
+        if self.player.is_playing:
+            self.player.stop()
+        self._choose_channel(int(choice[:2]))
+        if self.selected_button != None and button != self.selected_button:
+            self.selected_button.set_label(self.selected_button.label[0:7].strip())
+        self.selected_button = button
         self._play()
-        
-        
+
+class MyListBox(urwid.ListBox):
+        def keypress(self, size, key):
+                if key in ('up', 'down', 'page up' ,'page down', 'enter'):
+                        return super(MyListBox, self).keypress(size, key)
+                if key == ('j'):
+                        return super(MyListBox, self).keypress(size, 'down')
+                if key == ('k'):
+                        return super(MyListBox, self).keypress(size, 'up')
+                if key in ('q', 'Q'):
+                        raise urwid.ExitMainLoop()      
+    
+                                             
 if __name__ == "__main__":
-    fm = Pyfm()
+    fm = Doubanfm()
     fm.start()
+    
