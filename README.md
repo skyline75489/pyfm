@@ -24,10 +24,12 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
 
 * [requests](https://github.com/kennethreitz/requests)
 * [mpg123](http://www.mpg123.de)
+* [urwid](http://urwid.org)
 
 ## 安装依赖
 
     pip install requests
+    pip install urwid
     # on Linux with apt-get
     sudo apt-get install mpg123
     # on Mac OS X with Homebrew
