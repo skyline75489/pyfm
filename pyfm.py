@@ -110,8 +110,9 @@ class Doubanfm:
     def _play_track(self):
         _song = self.current_play_list.popleft()                
         self.current_song = Song(_song)
-        self.main_loop.set_alarm_in(self.current_song.length_in_sec + 1,
+        self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                    self.next_song, None);
+        self.selected_button.set_label(self.selected_button.label[0:7].strip())
         self.selected_button.set_label(self.selected_button.label + '          '+
                                         self.current_song.artist + ' - ' + 
                                         self.current_song.title)
@@ -121,26 +122,21 @@ class Doubanfm:
         
         # Currently playing the second last song in queue
         if len(self.current_play_list) == 1:
-            # Extend playlist
-            # print("Extending playlist...")
             playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
-            # print("Get {0} more tracks".format(len(playing_list)))
             self.current_play_list.extend(deque(playing_list))
             
         self.player.play(self.current_song)
-        
+    
+    def next_song(self, loop, user_data):
+        self.player.stop()
         # Scrobble the track if scrobbling is enabled 
         # and total playback time of the track > 30s
         if self.scrobbling and self.current_song.length_in_sec > 30:
             self.scrobbler.submit(self.current_song.artist, self.current_song.title,
                                   self.current_song.album_title, self.current_song.length_in_sec)
-            
+        
         self.douban.end_song(self.current_song.sid, self.current_channel)
-    
-    def next_song(self, loop, user_data):
-        self.player.player_process.poll()
-        if self.player.player_process.returncode is not None:
-            self._play_track()
+        self._play_track()
             
     def start(self):
         self.main_loop = urwid.MainLoop(self.ChannelListBox(self.ui_channel_list), self.palette, handle_mouse=False)
@@ -158,6 +154,11 @@ class Doubanfm:
         return MyListBox(urwid.SimpleFocusListWalker(body))
 
     def channel_chosen(self, button, choice):
+        # Choose the channel which is playing right now
+        # ignore this
+        if self.selected_button == button:
+            return
+        # Choose a different channel
         if self.player.is_playing:
             self.player.stop()
         self._choose_channel(int(choice[:2]))
@@ -175,7 +176,13 @@ class MyListBox(urwid.ListBox):
                 if key == ('k'):
                         return super(MyListBox, self).keypress(size, 'up')
                 if key in ('q', 'Q'):
-                        raise urwid.ExitMainLoop()      
+                        raise urwid.ExitMainLoop() 
+                if key == ('f'):
+                        # skip track
+                        pass
+                if key == ('r'):
+                        # rate track
+                        pass
     
                                              
 if __name__ == "__main__":
