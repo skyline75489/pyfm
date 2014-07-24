@@ -5,7 +5,7 @@
 
 豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API。
 
-Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其同时适应 Python 2 和 Python 3 以及 requests 。
+Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其适应 Python 3 以及 requests 。
 
 使用mpg123进行解码，
 
@@ -16,9 +16,9 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
 ## 运行环境
 
 * Linux/Mac OS X
-* Python 2.7, 3.4
+* Python 3
 
-只在Mac OS X上的Python 2.7/3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
+只在Mac OS X上的Python 3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
 
 ## 依赖
 
@@ -28,8 +28,8 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
 
 ## 安装依赖
 
-    pip install requests
-    pip install urwid
+    pip3 install requests
+    pip3 install urwid
     # on Linux with apt-get
     sudo apt-get install mpg123
     # on Mac OS X with Homebrew
