@@ -1,17 +1,11 @@
 豆瓣FM命令行播放器
 ==================
 
-主要参考 https://github.com/josephok/doubanfm 和 https://github.com/zonyitoo/doubanfm-qt。 在josephok项目的基础上对代码进行了完全的重构，并加入了Last.fm Scrobble功能。
+使用Python编写的豆瓣FM命令行播放器
 
-豆瓣FM API参考 https://github.com/zonyitoo/doubanfm-qt/wiki/豆瓣FM-API。
-
-Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进行重构使其适应 Python 3 以及 requests 。
-
-使用mpg123进行解码，
+![Screenshot](https://skyline75489.github.io/img/pyfm/screenshot.png)
 
 尚在开发中。
-
-
 
 ## 运行环境
 
@@ -37,6 +31,8 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
     
 ## 配置文件
 
+config.json
+
     {
         "email": 豆瓣用户名,
         "password": 豆瓣密码,
@@ -46,6 +42,20 @@ Last.fm Scrobbler代码参考 http://hg.user1.be/ScrobblerPlugin/ ,对代码进�
     
 ## 使用
 
-    python pyfm.py
+    python3 pyfm.py
 
-目前默认播放的是欧美频道，使用mpg123的内置控制，按f或q跳过当前歌曲。
+
+## 感谢
+
+本项目主要参考了以下几个项目
+
+* https://github.com/josephok/doubanfm
+* https://github.com/zonyitoo/doubanfm-qt
+* https://github.com/turingou/douban.fm
+*  http://hg.user1.be/ScrobblerPlugin/ 
+
+感谢以上项目的作者，开源万岁！
+
+## 协议
+
+The MIT License
