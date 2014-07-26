@@ -5,7 +5,7 @@ from time import time
 
 import requests
 
-debug = True
+debug = False
 
 def logger(message):
     if debug:
@@ -42,7 +42,6 @@ class Scrobbler():
             "t"  : timestamp,
             "a"  : auth
         }
-        logger(self.url)
         
         r = requests.get(self.url, params=payload)        
         resp = r.text
@@ -71,7 +70,7 @@ class Scrobbler():
         return True
 
     def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
-        logger("Now playing %s - %s" %(artist, title))
+        logger("Now playing %s - %s - %s" %(artist, title, album))
         
         payload = {
             "s": self.session_id,
