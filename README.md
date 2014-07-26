@@ -10,9 +10,9 @@
 ## 运行环境
 
 * Linux/Mac OS X
-* Python 3
+* Python 3.4
 
-只在Mac OS X上的Python 3.4环境下进行了测试。大部分Unix/Linux上应该都能够正常工作。
+只在Mac OS X和Linux Mint 14(Ubuntu 12.10)环境上进行了测试。大部分Unix/Linux上应该都能够正常工作。
 
 ## 依赖
 
