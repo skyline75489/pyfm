@@ -119,13 +119,12 @@ class Doubanfm:
         if self.scrobbling:
             self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
                                        self.current_song.album_title, self.current_song.length_in_sec)
-        
+            
+        self.player.play(self.current_song)
         # Currently playing the second last song in queue
         if len(self.current_play_list) == 1:
             playing_list = self.douban.get_playing_list(self.current_song.sid, self.current_channel)
             self.current_play_list.extend(deque(playing_list))
-            
-        self.player.play(self.current_song)
     
     def next_song(self, loop, user_data):
         self.player.stop()
