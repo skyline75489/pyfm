@@ -27,6 +27,7 @@ class Doubanfm:
                         ('title', 'yellow', 'default')]
         self.selected_button = None
         self.main_loop = None
+        self.song_change_alarm = None
         
         if self.scrobbling:
             self.scrobbler = Scrobbler(self.last_fm_username, self.last_fm_password)
@@ -110,10 +111,10 @@ class Doubanfm:
     def _play_track(self):
         _song = self.current_play_list.popleft()                
         self.current_song = Song(_song)
-        self.main_loop.set_alarm_in(self.current_song.length_in_sec,
+        self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                    self.next_song, None);
         self.selected_button.set_text(self.selected_button.text[0:7].strip())
-        self.selected_button.set_text(self.selected_button.text + '          '+
+        self.selected_button.set_text(self.selected_button.text + '                  '+
                                         self.current_song.artist + ' - ' + 
                                         self.current_song.title)
         if self.scrobbling:
@@ -135,10 +136,14 @@ class Doubanfm:
                                   self.current_song.album_title, self.current_song.length_in_sec)
         
         self.douban.end_song(self.current_song.sid, self.current_channel)
+        if self.song_change_alarm:
+            self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
     
     def skip_song(self):
         self.douban.skip_song(self.current_song.sid, self.current_channel)
+        if self.song_change_alarm:
+            self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
           
     def quit(self):
