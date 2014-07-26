@@ -147,14 +147,12 @@ class Doubanfm:
     def start(self):
         title = urwid.AttrMap(urwid.Text('豆瓣FM'), 'title')
         divider = urwid.Divider()
-        pile = urwid.Pile([divider, title, divider])
-        box = self.ChannelListBox()
+        pile = urwid.Padding(urwid.Pile([divider, title, divider]), left=4, right=4)
+        box = urwid.Padding(self.ChannelListBox(), left=2, right=4)
         
-        self.status = urwid.Text('')
-        status_bar = urwid.Pile([self.status, ])
         frame = urwid.Frame(box, header=pile, footer=divider)
-        padding = urwid.Padding(frame, left=4, right=4)
-        self.main_loop = urwid.MainLoop(padding, self.palette, handle_mouse=False)
+        
+        self.main_loop = urwid.MainLoop(frame, self.palette, handle_mouse=False)
         self.main_loop.run()
 
     def ChannelListBox(self):
