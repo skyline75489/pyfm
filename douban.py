@@ -47,9 +47,9 @@ class Douban:
             self.user_id = r.json()['user_id']
             self.expire = r.json()['expire']
             self.token = r.json()['token']
-            return True
+            return True, None
         else:
-            return False
+            return False, r.json()['err']
             
     def _get_type(self, option):
         return self.typeMap[option]
@@ -88,45 +88,42 @@ class Douban:
         _type = self._get_type('rate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         if r.json()['r'] == 0:
-            return True
+            return True, None
         else:
-            print("Error:" + r.json()['err'])
-            return False
+            return False, r.json()['err']
     
     def unrate_song(self, sid, channel):
         _type = self._get_type('unrate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         if r.json()['r'] == 0:
-            return True
+            return True, None
         else:
-            print("Error:" + r.json()['err'])
-            return False
+            return False, r.json()['err']
         
     def skip_song(self, sid, channel):
         _type = self._get_type('skip')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         if r.json()['r'] == 0:
-            return True
+            return True, None
         else:
-            print("Error:" + r.json()['err'])
-            return False
+            return False, r.json()['err']
         
     def end_song(self, sid, channel):
         _type = self._get_type('end')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         if r.json()['r'] == 0:
-            return True
+            return True, None
         else:
-            print("Error:" + r.json()['err'])
-            return False
-        
+            return False, r.json()['err']
+            
     def bye_song(self, sid, channel):
+        """No longer play this song
+        """
         _type = self._get_type('bye')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
         if r.json()['r'] == 0:
-            return True
+            return True, None
         else:
-            print("Error:" + r.json()['err'])
-            return False
+            return False, r.json()['err']
         
         
