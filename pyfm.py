@@ -114,7 +114,10 @@ class Doubanfm:
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                    self.next_song, None);
         self.selected_button.set_text(self.selected_button.text[0:7].strip())
-        self.selected_button.set_text(self.selected_button.text + '                  '+
+        heart = u'\N{WHITE HEART SUIT}';
+        if self.current_song.like:
+            heart = u'\N{BLACK HEART SUIT}'
+        self.selected_button.set_text(self.selected_button.text + '                 ' + heart + '  ' +
                                         self.current_song.artist + ' - ' + 
                                         self.current_song.title)
         if self.scrobbling:
@@ -140,12 +143,21 @@ class Doubanfm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
     
-    def skip_song(self):
+    def skip_current_song(self):
         self.douban.skip_song(self.current_song.sid, self.current_channel)
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
           
+    def rate_current_song(self):
+        self.douban.rate_song(self.current_song.sid, self.current_channel)
+        self.selected_button.set_text(self.selected_button.text.replace(u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
+        
+        
+    def unrate_current_song(self):
+        self.douban.unrate_song(self.current_song.sid, self.current_channel)
+        self.selected_button.set_text(self.selected_button.text.replace(u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
+        
     def quit(self):
         self.player.stop()
         
@@ -211,9 +223,11 @@ class MyListBox(urwid.ListBox):
                         raise urwid.ExitMainLoop() 
                 if key == ('f'):
                         self.fm.skip_song()
-                if key == ('r'):
-                        # rate track
-                        pass
+                if key == ('l'):
+                        if self.fm.current_song.like:
+                            self.fm.unrate_current_song()
+                        else :
+                            self.fm.rate_current_song()
     
                                              
 if __name__ == "__main__":
