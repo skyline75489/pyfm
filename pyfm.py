@@ -222,7 +222,7 @@ class MyListBox(urwid.ListBox):
                         self.fm.quit()
                         raise urwid.ExitMainLoop() 
                 if key == ('f'):
-                        self.fm.skip_song()
+                        self.fm.skip_current_song()
                 if key == ('l'):
                         if self.fm.current_song.like:
                             self.fm.unrate_current_song()
