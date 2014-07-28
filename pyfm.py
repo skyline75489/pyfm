@@ -66,15 +66,17 @@ class Doubanfm:
             self.email = config['email']
             self.password = config['password']
             
-        except KeyError:
+        except (KeyError,ValueError):
             self.douban_account = False
             print("Douban account not found. Personal FM disabled.")
         
-        try: 
+        try:
+            if config == None:
+                raise ValueError 
             self.last_fm_username = config['last_fm_username']
             self.last_fm_password = config['last_fm_password']
-        except KeyError:
-            self.scrobbing = False
+        except (KeyError,ValueError):
+            self.scrobbling = False
             print("Last.fm account not found. Scrobbling disabled.")
             
         try:
