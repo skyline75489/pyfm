@@ -18,14 +18,15 @@ logging.basicConfig(filename='fm.log', level=logging.DEBUG)
 
 class Doubanfm:
     def __init__(self):
+        # config and tools
         self._load_config()
         self.douban = Douban(self.email, self.password, self.user_id, self.expire, self.token, self.user_name)
         self.player = Player()
         self.current_channel = 0
         self.current_song = None
         self.current_play_list = None
-        self.get_channels()
-        
+            
+        # terminal ui
         self.palette = [('selected', 'bold', 'default'),
                         ('title', 'yellow', 'default')]
         self.selected_button = None
@@ -46,6 +47,7 @@ class Doubanfm:
                 self._save_cache()
             else:
                 print("Douban login failed: " + err)
+        self.get_channels()
         
     def _load_config(self):
         self.email = None
@@ -106,7 +108,10 @@ class Doubanfm:
             
     def get_channels(self):
         if self.channels is None:
-            self.channels = self.douban.get_channels()
+            self.channels = deque(self.douban.get_channels())
+        # Not logged in. Disable personal radio
+        if self.douban_account == False:
+            self.channels.popleft()
         return self.channels
     
     def _choose_channel(self, channel):
@@ -169,7 +174,17 @@ class Doubanfm:
             self.selected_button.set_text(self.selected_button.text.replace(u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
         else:
             logging.error(err);
-        
+    
+    def trash_current_song(self):
+        r, err = self.douban.bye_song(self.current_song.sid, self.current_channel)
+        if r:
+            # play next song
+            if self.song_change_alarm:
+                self.main_loop.remove_alarm(self.song_change_alarm)
+            self._play_track()
+        else:
+            logging.error(err)
+            
     def quit(self):
         self.player.stop()
         
@@ -233,13 +248,15 @@ class MyListBox(urwid.ListBox):
                 if key in ('q', 'Q'):
                         self.fm.quit()
                         raise urwid.ExitMainLoop() 
-                if key == ('f'):
+                if key == ('n'):
                         self.fm.skip_current_song()
                 if key == ('l'):
                         if self.fm.current_song.like:
                             self.fm.unrate_current_song()
                         else :
                             self.fm.rate_current_song()
+                if key == ('t'):
+                        self.fm.trash_current_song()
     
                                              
 if __name__ == "__main__":
