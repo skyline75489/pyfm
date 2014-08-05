@@ -28,7 +28,7 @@
     sudo apt-get install mpg123
     # on Mac OS X with Homebrew
     brew install mpg123
-    
+
 ## 配置文件
 
 config.json
@@ -37,18 +37,18 @@ config.json
         "email": 豆瓣用户名,
         "password": 豆瓣密码,
         "last_fm_username": Last.fm用户名,
-        "last_fm_password": Last.fm密码    
+        "last_fm_password": Last.fm密码
     }
-    
+
 ## 使用
 
     python3 pyfm.py
 
 ## 快捷键
     [n]  ->  跳过当前歌曲
-    [l]   ->  给当前歌曲添加红心或删除红心
+    [l]  ->  给当前歌曲添加红心或删除红心
     [t]  ->  不再播放当前歌曲
-    [q] ->  退出播放器
+    [q]  ->  退出播放器
 
 ## 感谢
 
@@ -57,7 +57,7 @@ config.json
 * https://github.com/josephok/doubanfm
 * https://github.com/zonyitoo/doubanfm-qt
 * https://github.com/turingou/douban.fm
-*  http://hg.user1.be/ScrobblerPlugin/ 
+*  http://hg.user1.be/ScrobblerPlugin/
 
 感谢以上项目的作者，开源万岁！
 
