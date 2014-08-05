@@ -5,6 +5,7 @@ import subprocess
 import time
 import json
 from collections import deque
+import logging
 
 import urwid
 
@@ -12,6 +13,8 @@ from douban import Douban
 from song import Song
 from player import Player
 from scrobbler import Scrobbler
+
+logging.basicConfig(filename='fm.log', level=logging.DEBUG)
 
 class Doubanfm:
     def __init__(self):
@@ -152,13 +155,20 @@ class Doubanfm:
         self._play_track()
           
     def rate_current_song(self):
-        self.douban.rate_song(self.current_song.sid, self.current_channel)
-        self.selected_button.set_text(self.selected_button.text.replace(u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
-        
+        r , err = self.douban.rate_song(self.current_song.sid, self.current_channel)
+        if r:
+            self.current_song.like = True
+            self.selected_button.set_text(self.selected_button.text.replace(u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
+        else:
+            logging.error(err);
         
     def unrate_current_song(self):
-        self.douban.unrate_song(self.current_song.sid, self.current_channel)
-        self.selected_button.set_text(self.selected_button.text.replace(u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
+        r, err = self.douban.unrate_song(self.current_song.sid, self.current_channel)
+        if r:
+            self.current_song.like = False
+            self.selected_button.set_text(self.selected_button.text.replace(u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
+        else:
+            logging.error(err);
         
     def quit(self):
         self.player.stop()
