@@ -7,9 +7,9 @@ class Douban:
     """ Douban class, provides some APIs.
     """
     def __init__(self, email, password, user_id=None, expire=None, token=None, user_name=None):
-        self.login_url = 'http://www.douban.com/j/app/login'
-        self.channel_url = 'http://www.douban.com/j/app/radio/channels'
-        self.api_url = 'http://www.douban.com/j/app/radio/people'
+        self.login_url = 'https://www.douban.com/j/app/login'
+        self.channel_url = 'https://www.douban.com/j/app/radio/channels'
+        self.api_url = 'https://www.douban.com/j/app/radio/people'
         self.app_name = 'radio_desktop_win'
         self.version = '100'
         self.typeMap = {
