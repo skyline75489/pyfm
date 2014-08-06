@@ -3,9 +3,12 @@
 import requests
 import json
 
+
 class Douban:
+
     """ Douban class, provides some APIs.
     """
+
     def __init__(self, email, password, user_id=None, expire=None, token=None, user_name=None):
         self.login_url = 'https://www.douban.com/j/app/login'
         self.channel_url = 'https://www.douban.com/j/app/radio/channels'
@@ -21,27 +24,29 @@ class Douban:
             'bye': 'b',
             'skip': 's',
         }
-        
+
         self.email = email
         self.password = password
-        
+
         self.user_id = user_id
         self.expire = expire
         self.token = token
         self.user_name = user_name
-        
+
         self.channels = None
-    
+
     def _do_api_request(self, _type, sid=None, channel=None, kbps=64):
-        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
-                'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '','channel': channel, 'type': _type}
-        
+        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id,
+                   'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '', 'channel': channel, 'type': _type}
+
         r = requests.get(self.api_url, params=payload)
         return r
-        
+
     def do_login(self):
-        payload = {'email': self.email, 'password': self.password, 'app_name': self.app_name, 'version': self.version}
-        r = requests.post(self.login_url, params=payload, headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        payload = {'email': self.email, 'password': self.password,
+                   'app_name': self.app_name, 'version': self.version}
+        r = requests.post(self.login_url, params=payload, headers={
+                          'Content-Type': 'application/x-www-form-urlencoded'})
         if r.json()['r'] == 0:
             self.user_name = r.json()['user_name']
             self.user_id = r.json()['user_id']
@@ -50,10 +55,10 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-            
+
     def _get_type(self, option):
         return self.typeMap[option]
-        
+
     def get_channels(self):
         """ Return a list of channels
         """
@@ -66,19 +71,19 @@ class Douban:
 
     def get_new_play_list(self, channel, kbps=64):
         _type = self._get_type('new')
-        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
-                'expire': self.expire, 'token': self.token, 'sid': '', 'h': '','channel': channel, 'kbps': kbps, 'type': _type}
-        
+        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id,
+                   'expire': self.expire, 'token': self.token, 'sid': '', 'h': '', 'channel': channel, 'kbps': kbps, 'type': _type}
+
         r = requests.get(self.api_url, params=payload)
         if r.json()['r'] == 0:
             songs = r.json()['song']
             return songs
-            
+
     def get_playing_list(self, sid, channel, kbps=64):
         _type = self._get_type('playing')
-        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id, 
-                'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '','channel': channel, 'kbps': kbps, 'type': _type}
-        
+        payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id,
+                   'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '', 'channel': channel, 'kbps': kbps, 'type': _type}
+
         r = requests.get(self.api_url, params=payload)
         if r.json()['r'] == 0:
             songs = r.json()['song']
@@ -91,7 +96,7 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-    
+
     def unrate_song(self, sid, channel):
         _type = self._get_type('unrate')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
@@ -99,7 +104,7 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-        
+
     def skip_song(self, sid, channel):
         _type = self._get_type('skip')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
@@ -107,7 +112,7 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-        
+
     def end_song(self, sid, channel):
         _type = self._get_type('end')
         r = self._do_api_request(sid=sid, channel=channel, _type=_type)
@@ -115,7 +120,7 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-            
+
     def bye_song(self, sid, channel):
         """No longer play this song
         """
@@ -125,5 +130,3 @@ class Douban:
             return True, None
         else:
             return False, r.json()['err']
-        
-        
