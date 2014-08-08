@@ -4,7 +4,7 @@ class Song:
         try:
             self.artist = song_json['artist']
             self.title = song_json['title']
-            # Uppercase title, make it normal
+            # All-uppercase title. Make it normal
             if self.title.isupper():
                 self.title = self.title.title
 

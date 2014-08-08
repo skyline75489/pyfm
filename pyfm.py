@@ -114,7 +114,7 @@ class Doubanfm:
         if self.channels is None:
             self.channels = deque(self.douban.get_channels())
         # Not logged in. Disable personal radio
-        if self.douban_account == False:
+        if not self.douban_account:
             self.channels.popleft()
         return self.channels
 
@@ -132,6 +132,8 @@ class Doubanfm:
         heart = u'\N{WHITE HEART SUIT}'
         if self.current_song.like:
             heart = u'\N{BLACK HEART SUIT}'
+        if not self.douban_account:
+            heart = ' '
         self.selected_button.set_text(self.selected_button.text + '                 ' + heart + '  ' +
                                       self.current_song.artist + ' - ' +
                                       self.current_song.title)
@@ -167,6 +169,8 @@ class Doubanfm:
         self._play_track()
 
     def rate_current_song(self):
+        if not self.douban_account:
+            return
         r, err = self.douban.rate_song(
             self.current_song.sid, self.current_channel)
         if r:
@@ -177,6 +181,8 @@ class Doubanfm:
             logging.error(err)
 
     def unrate_current_song(self):
+        if not self.douban_account:
+            return
         r, err = self.douban.unrate_song(
             self.current_song.sid, self.current_channel)
         if r:
@@ -187,6 +193,8 @@ class Doubanfm:
             logging.error(err)
 
     def trash_current_song(self):
+        if not self.douban_account:
+            return
         r, err = self.douban.bye_song(
             self.current_song.sid, self.current_channel)
         if r:

@@ -12,7 +12,6 @@ class Player:
 
     def play(self, song):
         self.current_song = song
-
         # using mpg123 to play the track
         # -q(quiet) remove the output to stdout
         self.player_process = subprocess.Popen(
