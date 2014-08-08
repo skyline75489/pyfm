@@ -15,7 +15,7 @@ class Douban:
         self.api_url = 'https://www.douban.com/j/app/radio/people'
         self.app_name = 'radio_desktop_win'
         self.version = '100'
-        self.typeMap = {
+        self.type_map = {
             'new': 'n',
             'playing': 'p',
             'rate': 'r',
@@ -57,7 +57,7 @@ class Douban:
             return False, r.json()['err']
 
     def _get_type(self, option):
-        return self.typeMap[option]
+        return self.type_map[option]
 
     def get_channels(self):
         """ Return a list of channels
