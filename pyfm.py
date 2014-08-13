@@ -243,6 +243,8 @@ class Doubanfm:
             self.selected_button.set_text(
                 self.selected_button.text[0:7].strip())
         self.selected_button = button
+        if self.song_change_alarm:
+            self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
 
 
