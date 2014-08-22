@@ -2,16 +2,11 @@
 # See http://www.audioscrobbler.net/development/protocol/
 from hashlib import md5
 from time import time
+import logging
 
 import requests
 
-debug = False
-
-
-def logger(message):
-    if debug:
-        print('[Scrobbler]' + message)
-
+logger = logging.getLogger('main')
 
 class Scrobbler():
 
@@ -28,14 +23,14 @@ class Scrobbler():
         self.version = version
 
     def handshake(self):
-        logger('handshake')
+        logger.debug('Scrobbler handshake')
         timestamp = int(time()).__str__()
-        logger(timestamp)
+        logger.debug(timestamp)
 
         password = self.password.encode('utf-8')
         inner_md5 = (md5(password).hexdigest() + timestamp).encode('utf-8')
         auth = md5(inner_md5).hexdigest()
-        logger(auth)
+        logger.debug(auth)
 
         payload = {
             "hs": "true",
@@ -51,21 +46,22 @@ class Scrobbler():
         resp = r.text
 
         if resp.startswith("BADUSER"):
-            logger('BADUSER')
+            logger.error('BADUSER')
             return False
 
         if resp.startswith("UPTODATE"):
-            logger('UPTODATE')
+            logger.error('UPTODATE')
             return False
 
         if resp.startswith("FAILED"):
-            logger('FAILED')
+            logger.error('FAILED')
             return False
 
         if resp.startswith("BADAUTH"):
-            logger('BADAUTH')
+            logger.error('BADAUTH')
             return False
-
+            
+        logger.debug('Handshake OK')
         resp_info = resp.split("\n")
         self.session_id = resp_info[1].rstrip()
         self.now_playing_url = resp_info[2].rstrip()
@@ -74,7 +70,7 @@ class Scrobbler():
         return True
 
     def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
-        logger("Now playing %s - %s - %s" % (artist, title, album))
+        logger.debug("Now playing %s - %s - %s" % (artist, title, album))
 
         payload = {
             "s": self.session_id,
@@ -90,15 +86,15 @@ class Scrobbler():
         resp = r.text
 
         if resp.startswith("OK"):
-            logger('Now playing OK')
+            logger.debug('Now playing OK')
             return True
 
         if resp.startswith("FAILED"):
-            logger('Now playing FAILED')
+            logger.debug('Now playing FAILED')
             return False
 
     def submit(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
-        logger("Submitting %s - %s" % (artist, title))
+        logger.debug("Submitting %s - %s" % (artist, title))
 
         timestamp = int(time())
 
@@ -119,9 +115,9 @@ class Scrobbler():
         resp = r.text
 
         if resp.startswith("OK"):
-            logger("Submitting OK")
+            logger.debug("Submitting OK")
             return True
 
         if resp.startswith("FAILED"):
-            logger("Submitting FAILED")
+            logger.debug("Submitting FAILED")
             return False

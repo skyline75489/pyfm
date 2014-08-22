@@ -1,4 +1,4 @@
-# /usr/bin/env python3
+#!/usr/bin/env python3
 import os
 import sys
 import subprocess
@@ -14,8 +14,11 @@ from song import Song
 from player import Player
 from scrobbler import Scrobbler
 
-logging.basicConfig(filename='fm.log', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    filename='fm.log', 
+                    level=logging.DEBUG)
 
+logger = logging.getLogger('main')
 
 class Doubanfm:
 
@@ -126,6 +129,8 @@ class Doubanfm:
     def _play_track(self):
         _song = self.current_play_list.popleft()
         self.current_song = Song(_song)
+        logger.debug("Current Song: "+self.current_song.artist+' - '+self.current_song.song_title+ ' - '+self.current_song.album_title)
+        
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                                              self.next_song, None)
         self.selected_button.set_text(self.selected_button.text[0:7].strip())
@@ -178,7 +183,7 @@ class Doubanfm:
             self.selected_button.set_text(self.selected_button.text.replace(
                 u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
         else:
-            logging.error(err)
+            logger.error(err)
 
     def unrate_current_song(self):
         if not self.douban_account:
@@ -190,7 +195,7 @@ class Doubanfm:
             self.selected_button.set_text(self.selected_button.text.replace(
                 u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
         else:
-            logging.error(err)
+            logger.error(err)
 
     def trash_current_song(self):
         if not self.douban_account:
@@ -203,7 +208,7 @@ class Doubanfm:
                 self.main_loop.remove_alarm(self.song_change_alarm)
             self._play_track()
         else:
-            logging.error(err)
+            logger.error(err)
 
     def quit(self):
         self.player.stop()
