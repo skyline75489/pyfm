@@ -136,9 +136,9 @@ class Doubanfm:
             heart = ' '
         self.selected_button.set_text(self.selected_button.text + '                 ' + heart + '  ' +
                                       self.current_song.artist + ' - ' +
-                                      self.current_song.title)
+                                      self.current_song.song_title)
         if self.scrobbling:
-            self.scrobbler.now_playing(self.current_song.artist, self.current_song.title,
+            self.scrobbler.now_playing(self.current_song.artist, self.current_song.song_title,
                                        self.current_song.album_title, self.current_song.length_in_sec)
 
         self.player.stop()
@@ -154,7 +154,7 @@ class Doubanfm:
         # Scrobble the track if scrobbling is enabled
         # and total playback time of the track > 30s
         if self.scrobbling and self.current_song.length_in_sec > 30:
-            self.scrobbler.submit(self.current_song.artist, self.current_song.title,
+            self.scrobbler.submit(self.current_song.artist, self.current_song.song_title,
                                   self.current_song.album_title, self.current_song.length_in_sec)
 
         self.douban.end_song(self.current_song.sid, self.current_channel)

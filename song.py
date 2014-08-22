@@ -3,10 +3,10 @@ class Song:
     def __init__(self, song_json):
         try:
             self.artist = song_json['artist']
-            self.title = song_json['title']
+            self.song_title = song_json['title']
             # All-uppercase title. Make it normal
-            if self.title.isupper():
-                self.title = self.title.title
+            if self.song_title.isupper():
+                self.song_title = self.song_title.title
 
             self.album_title = song_json['albumtitle']
             self.length_in_sec = song_json['length']
