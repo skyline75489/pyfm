@@ -8,6 +8,7 @@ import requests
 
 logger = logging.getLogger('main')
 
+
 class Scrobbler():
 
     # client : 3 chars
@@ -60,7 +61,7 @@ class Scrobbler():
         if resp.startswith("BADAUTH"):
             logger.error('BADAUTH')
             return False
-            
+
         logger.debug('Handshake OK')
         resp_info = resp.split("\n")
         self.session_id = resp_info[1].rstrip()
