@@ -14,7 +14,7 @@ from song import Song
 from player import Player
 from scrobbler import Scrobbler
 
-logging.basicConfig(format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
                     filename='fm.log', 
                     level=logging.DEBUG)
 
