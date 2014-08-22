@@ -70,7 +70,7 @@ class Scrobbler():
         return True
 
     def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
-        logger.debug("Now playing %s - %s - %s" % (artist, title, album))
+        logger.debug("Now Playing %s - %s - %s" % (artist, title, album))
 
         payload = {
             "s": self.session_id,
@@ -86,11 +86,11 @@ class Scrobbler():
         resp = r.text
 
         if resp.startswith("OK"):
-            logger.debug('Now playing OK')
+            logger.debug('Now Playing OK')
             return True
 
         if resp.startswith("FAILED"):
-            logger.debug('Now playing FAILED')
+            logger.debug('Now Playing FAILED')
             return False
 
     def submit(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):

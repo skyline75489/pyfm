@@ -129,7 +129,14 @@ class Doubanfm:
     def _play_track(self):
         _song = self.current_play_list.popleft()
         self.current_song = Song(_song)
-        logger.debug("Current Song: "+self.current_song.artist+' - '+self.current_song.song_title+ ' - '+self.current_song.album_title)
+        logger.debug('Playing Track');
+        logger.debug('Artist: '+self.current_song.artist)
+        logger.debug('Title: '+self.current_song.song_title)
+        logger.debug('Album: '+self.current_song.album_title)
+        logger.debug('Length: '+self.current_song.length_in_str)
+        logger.debug('Sid: '+self.current_song.sid)
+        
+        logger.debug('{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
         
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                                              self.next_song, None)
@@ -153,6 +160,7 @@ class Doubanfm:
             # Extend the playing list
             playing_list = self.douban.get_playing_list(
                 self.current_song.sid, self.current_channel)
+            logger.debug('Got {0} more tracks'.format(len(playing_list)))
             self.current_play_list.extend(deque(playing_list))
 
     def next_song(self, loop, user_data):
@@ -161,14 +169,24 @@ class Doubanfm:
         if self.scrobbling and self.current_song.length_in_sec > 30:
             self.scrobbler.submit(self.current_song.artist, self.current_song.song_title,
                                   self.current_song.album_title, self.current_song.length_in_sec)
-
-        self.douban.end_song(self.current_song.sid, self.current_channel)
+        
+        if self.douban_account:
+            r, err = self.douban.end_song(self.current_song.sid, self.current_channel)
+            if r:
+                logger.debug('End song OK')
+            else:
+                logger.error(err)
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
 
     def skip_current_song(self):
-        self.douban.skip_song(self.current_song.sid, self.current_channel)
+        if self.douban_account:
+            r, err = self.douban.skip_song(self.current_song.sid, self.current_channel)
+            if r:
+                logger.debug('Skip song OK')
+            else:
+                logger.error(err)
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
@@ -182,6 +200,7 @@ class Doubanfm:
             self.current_song.like = True
             self.selected_button.set_text(self.selected_button.text.replace(
                 u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
+            logger.debug('Rate song OK')
         else:
             logger.error(err)
 
@@ -194,6 +213,7 @@ class Doubanfm:
             self.current_song.like = False
             self.selected_button.set_text(self.selected_button.text.replace(
                 u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
+            logger.debug('Unrate song OK')
         else:
             logger.error(err)
 
@@ -207,6 +227,7 @@ class Doubanfm:
             if self.song_change_alarm:
                 self.main_loop.remove_alarm(self.song_change_alarm)
             self._play_track()
+            logger.debug('Trash song OK')
         else:
             logger.error(err)
 
