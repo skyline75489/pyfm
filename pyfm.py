@@ -4,8 +4,11 @@ import sys
 import subprocess
 import time
 import json
-from collections import deque
 import logging
+
+from hashlib import md5
+from collections import deque
+from getpass import getpass
 
 import urwid
 
@@ -18,86 +21,105 @@ logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s 
                     filename='fm.log',
                     level=logging.DEBUG)
 
-logger = logging.getLogger('main')
+logger = logging.getLogger()
 
 
 class Doubanfm:
 
     def __init__(self):
-        # config and tools
-        self._load_config()
+        self.email = None
+        self.password = None
+        self.user_name = None
+        self.user_id = None
+        self.expire = None
+        self.token = None
+        self.cookies = None
+        
+        self.last_fm_username = None
+        self.last_fm_password = None
+        self.scrobbling = True
+        self.douban_account = True
+        self.channels = None
+        
+        # Set up config
+        try:
+            arg = sys.argv[1]
+            self._do_config()
+        except IndexError:
+            self._load_config()
+        
+        # Init API tools
         self.douban = Douban(
-            self.email, self.password, self.user_id, self.expire, self.token, self.user_name)
+            self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
         self.player = Player()
         self.current_channel = 0
         self.current_song = None
         self.current_play_list = None
 
-        # terminal ui
+        # Init terminal ui
         self.palette = [('selected', 'bold', 'default'),
                         ('title', 'yellow', 'default')]
         self.selected_button = None
         self.main_loop = None
         self.song_change_alarm = None
-
+        
+        # Try to login
+        if self.last_fm_username is None or self.last_fm_username == "":
+            self.scrobbling = False
+        if (self.email is None or self.email == "") and self.cookies == None:
+            self.douban_account = False
+            
         if self.scrobbling:
             self.scrobbler = Scrobbler(
                 self.last_fm_username, self.last_fm_password)
-            r = self.scrobbler.handshake()
+            r, err = self.scrobbler.handshake()
             if r:
-                print("Last.FM logged in.")
+                print("Last.FM 已登陆")
             else:
-                print("Last.FM login failed")
+                print("Last.FM 登录失败: " + err)
         if self.douban_account:
             r, err = self.douban.do_login()
             if r:
-                print("Douban logged in.")
-                self._save_cache()
+                print("Douban 已登陆")
             else:
-                print("Douban login failed: " + err)
+                print("Douban 登录失败: " + err)
         self.get_channels()
+        self._save_cache()
 
+    def _do_config(self):
+        self.email = input('豆瓣账户 (Email地址): ') or None
+        self.password = getpass('豆瓣密码: ') or None
+        self.last_fm_username = input('Last.fm 用户名: ') or None
+        password = getpass('Last.fm 密码: ') or None
+        self.last_fm_password = md5(password.encode('utf-8')).hexdigest() 
+                
     def _load_config(self):
-        self.email = None
-        self.password = None
-        self.user_id = None
-        self.expire = None
-        self.token = None
-        self.user_name = None
-        self.lasf_fm_username = None
-        self.last_fm_password = None
-        self.scrobbling = True
-        self.douban_account = True
-        self.channels = None
-
-        config = None
-        token = None
-        try:
-            f = open('config.json', 'r')
-            config = json.load(f)
-
-            self.email = config['email']
-            self.password = config['password']
-
-        except (KeyError, ValueError):
-            self.douban_account = False
-            print("Douban account not found. Personal FM disabled.")
-
-        try:
-            if config == None:
-                raise ValueError
-            self.last_fm_username = config['last_fm_username']
-            self.last_fm_password = config['last_fm_password']
-        except (KeyError, ValueError):
-            self.scrobbling = False
-            print("Last.fm account not found. Scrobbling disabled.")
-
         try:
             f = open('channels.json', 'r')
-            self.channels = json.load(f)
-            print("Load channel file.")
+            self.channels = deque(json.load(f))
+            logger.debug("Load channel file.")
         except FileNotFoundError:
-            print("Channels file not found.")
+            logger.debug("Channels file not found.")
+            
+        try: 
+            f = open('cache.json', 'r')
+            cache = json.load(f)
+            try:
+                self.user_name = cache['user_name']
+                self.user_id = cache['user_id']
+                self.expire = cache['expire']
+                self.token = cache['token']
+                self.cookies = cache['cookies']
+            except (KeyError, ValueError):
+                self.douban_account = False
+            try:
+                self.last_fm_username = cache['last_fm_username']
+                self.last_fm_password = cache['last_fm_password']
+            except (KeyError, ValueError):
+                self.scrobbling = False
+    
+        except FileNotFoundError:
+            logger.debug("Cache file not found.")
 
     def _save_cache(self):
         f = None
@@ -108,9 +130,12 @@ class Doubanfm:
                 'user_name': self.douban.user_name,
                 'user_id': self.douban.user_id,
                 'expire': self.douban.expire,
-                'token': self.douban.token
+                'token': self.douban.token,
+                'cookies': self.douban.cookies,
+                'last_fm_username': self.last_fm_username,
+                'last_fm_password': self.last_fm_password
             }, f)
-            json.dump(self.channels, f2)
+            json.dump(list(self.channels), f2)
         except IOError:
             raise Exception("Unable to write cache file")
 
@@ -142,7 +167,7 @@ class Doubanfm:
 
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                                              self.next_song, None)
-        self.selected_button.set_text(self.selected_button.text[0:7].strip())
+        self.selected_button.set_text(self.selected_button.text[0:11].strip())
         heart = u'\N{WHITE HEART SUIT}'
         if self.current_song.like:
             heart = u'\N{BLACK HEART SUIT}'
@@ -236,6 +261,7 @@ class Doubanfm:
             logger.error(err)
 
     def quit(self):
+        logger.debug('Quit')
         self.player.stop()
 
     def start(self):
@@ -271,7 +297,7 @@ class Doubanfm:
         self._choose_channel(choice)
         if self.selected_button != None and button != self.selected_button:
             self.selected_button.set_text(
-                self.selected_button.text[0:7].strip())
+                self.selected_button.text[0:11].strip())
         self.selected_button = button
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)

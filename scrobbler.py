@@ -6,7 +6,7 @@ import logging
 
 import requests
 
-logger = logging.getLogger('main')
+logger = logging.getLogger()
 
 
 class Scrobbler():
@@ -28,8 +28,7 @@ class Scrobbler():
         timestamp = int(time()).__str__()
         logger.debug(timestamp)
 
-        password = self.password.encode('utf-8')
-        inner_md5 = (md5(password).hexdigest() + timestamp).encode('utf-8')
+        inner_md5 = (self.password + timestamp).encode('utf-8')
         auth = md5(inner_md5).hexdigest()
         logger.debug(auth)
 
@@ -45,30 +44,29 @@ class Scrobbler():
 
         r = requests.get(self.url, params=payload)
         resp = r.text
-
-        if resp.startswith("BADUSER"):
-            logger.error('BADUSER')
-            return False
-
-        if resp.startswith("UPTODATE"):
-            logger.error('UPTODATE')
-            return False
+        
+        if resp.startswith("OK"):
+            logger.debug('Handshake OK')
+            resp_info = resp.split("\n")
+            self.session_id = resp_info[1].rstrip()
+            self.now_playing_url = resp_info[2].rstrip()
+            self.submission_url = resp_info[3].rstrip()
+            return True, None
+            
+        err = None
+        if resp.startswith("BANNED"):
+            err = "BANNED"
+            
+        if resp.startswith("BADTIME"):
+            err = "BADTIME"
 
         if resp.startswith("FAILED"):
-            logger.error('FAILED')
-            return False
+            err = "FAILED"
 
         if resp.startswith("BADAUTH"):
-            logger.error('BADAUTH')
-            return False
-
-        logger.debug('Handshake OK')
-        resp_info = resp.split("\n")
-        self.session_id = resp_info[1].rstrip()
-        self.now_playing_url = resp_info[2].rstrip()
-        self.submission_url = resp_info[3].rstrip()
-
-        return True
+            err = "BADAUTH"
+            
+        return False, err
 
     def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):
         logger.debug("Now Playing %s - %s - %s" % (artist, title, album))

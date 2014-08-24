@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
 import json
@@ -9,7 +8,7 @@ class Douban:
     """ Douban class, provides some APIs.
     """
 
-    def __init__(self, email, password, user_id=None, expire=None, token=None, user_name=None):
+    def __init__(self, email, password, user_id=None, expire=None, token=None, user_name=None, cookies=None):
         self.login_url = 'https://www.douban.com/j/app/login'
         self.channel_url = 'https://www.douban.com/j/app/radio/channels'
         self.api_url = 'https://www.douban.com/j/app/radio/people'
@@ -32,17 +31,21 @@ class Douban:
         self.expire = expire
         self.token = token
         self.user_name = user_name
-
+        self.cookies = cookies
+        
         self.channels = None
 
     def _do_api_request(self, _type, sid=None, channel=None, kbps=64):
         payload = {'app_name': self.app_name, 'version': self.version, 'user_id': self.user_id,
                    'expire': self.expire, 'token': self.token, 'sid': sid, 'h': '', 'channel': channel, 'type': _type}
 
-        r = requests.get(self.api_url, params=payload)
+        r = requests.get(self.api_url, params=payload, cookies=self.cookies)
         return r
 
     def do_login(self):
+        # Has cookies already. No need to login again.
+        if self.cookies:
+            return True, None
         payload = {'email': self.email, 'password': self.password,
                    'app_name': self.app_name, 'version': self.version}
         r = requests.post(self.login_url, params=payload, headers={
@@ -52,6 +55,7 @@ class Douban:
             self.user_id = r.json()['user_id']
             self.expire = r.json()['expire']
             self.token = r.json()['token']
+            self.cookies = r.cookies.get_dict()
             return True, None
         else:
             return False, r.json()['err']
