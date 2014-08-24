@@ -142,10 +142,6 @@ class Doubanfm:
     def get_channels(self):
         if self.channels is None:
             self.channels = deque(self.douban.get_channels())
-        # Not logged in. Disable personal radio
-        if not self.douban_account:
-            self.channels.popleft()
-        return self.channels
 
     def _choose_channel(self, channel):
         self.current_channel = channel
