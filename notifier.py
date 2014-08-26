@@ -54,7 +54,11 @@ class Notifier(object):
 
         if not self.notify_available:
             print("Notify not available.")
+            self.notify = self._notify_not_available
 
+    def _notify_not_available(self, **kwargs):
+        return
+        
     def _terminal_notifier_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
 
         args = ['-message', message]
