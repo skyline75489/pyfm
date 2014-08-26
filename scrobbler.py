@@ -1,15 +1,16 @@
 # Scrobbler protocol v1.2
 # See http://www.audioscrobbler.net/development/protocol/
+import logging
+
 from hashlib import md5
 from time import time
-import logging
 
 import requests
 
 logger = logging.getLogger()
 
 
-class Scrobbler():
+class Scrobbler(object):
 
     # client : 3 chars
     # DEPRECATED : tst 1.0 - lastfm clientId for dev. Lastfm threats to disable it for version 1.2 http://www.last.fm/api/submissions

@@ -1,4 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import os
 import sys
 import subprocess
@@ -16,6 +19,7 @@ from douban import Douban
 from song import Song
 from player import Player
 from scrobbler import Scrobbler
+from notifier import Notifier
 
 logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
                     filename='fm.log',
@@ -24,7 +28,7 @@ logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s 
 logger = logging.getLogger()
 
 
-class Doubanfm:
+class Doubanfm(object):
 
     def __init__(self):
         self.email = None
@@ -157,7 +161,10 @@ class Doubanfm:
         logger.debug('Album: ' + self.current_song.album_title)
         logger.debug('Length: ' + self.current_song.length_in_str)
         logger.debug('Sid: ' + self.current_song.sid)
-
+        
+        # Post notification
+        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' - ' + 
+                self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
         logger.debug(
             '{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
 
