@@ -84,7 +84,7 @@ class Notifier(object):
         subprocess.Popen([
             self.bin_path,
             '-i',
-            self.tempfile_dir + '/' str(title.__hash__()) + '.jpg',
+            self.tempfile_dir + '/' + str(title.__hash__()) + '.jpg',
             title,
             subtitle],
             stdout=subprocess.PIPE, 
