@@ -1,11 +1,18 @@
+# -*- coding: utf-8 -*-
 import os
 import platform
 import subprocess
 import tempfile
 
 SYSTEM = platform.system()
+PY_VERSION_TUPLE = platform.python_version_tuple()
 PYOBJC = False
 
+if int(PY_VERSION_TUPLE[0]) < 3:
+    import sys
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    
 if SYSTEM == 'Darwin':
     try:
         from Foundation import NSDate, NSURL, NSUserNotification, NSUserNotificationCenter
