@@ -14,7 +14,7 @@
 ## 运行环境
 
 * Linux/Mac OS X
-* Python 3.3+
+* Python 2.7+ , 3.3+
 
 ## 依赖
 
@@ -36,16 +36,16 @@
     
     # 如果没有安装pip，请先安装pip
     # 然后再使用pip安装下面的依赖
-    pip3 install requests
-    pip3 install urwid
+    (sudo) pip install requests
+    (sudo) pip install urwid
 
 ## 使用
 
-    python3 pyfm.py
+    python pyfm.py
 
 ## 配置
 
-    python3 pyfm.py config
+    python pyfm.py config
     
 根据提示输入账户，密码等，豆瓣账户密码不会保存在本地，豆瓣Token，Cookie，Last.fm账户名，Last.fm密码的md5值等保存在cache.json中。
 
