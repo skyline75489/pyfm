@@ -75,7 +75,7 @@ class Notifier(object):
         subprocess.Popen([
             'curl',
             '-o',
-            self.tempfile_dir + title + '.jpg',
+            self.tempfile_dir + '/' + str(title.__hash__()) + '.jpg',
             appIcon],
             stdout=subprocess.PIPE, 
             stderr=subprocess.STDOUT
@@ -84,7 +84,7 @@ class Notifier(object):
         subprocess.Popen([
             self.bin_path,
             '-i',
-            self.tempfile_dir + title + '.jpg',
+            self.tempfile_dir + '/' str(title.__hash__()) + '.jpg',
             title,
             subtitle],
             stdout=subprocess.PIPE, 
