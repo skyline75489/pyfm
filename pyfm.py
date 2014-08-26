@@ -38,20 +38,20 @@ class Doubanfm(object):
         self.expire = None
         self.token = None
         self.cookies = None
-        
+
         self.last_fm_username = None
         self.last_fm_password = None
         self.scrobbling = True
         self.douban_account = True
         self.channels = None
-        
+
         # Set up config
         try:
             arg = sys.argv[1]
             self._do_config()
         except IndexError:
             self._load_config()
-        
+
         # Init API tools
         self.douban = Douban(
             self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
@@ -66,13 +66,13 @@ class Doubanfm(object):
         self.selected_button = None
         self.main_loop = None
         self.song_change_alarm = None
-        
+
         # Try to login
         if self.last_fm_username is None or self.last_fm_username == "":
             self.scrobbling = False
         if (self.email is None or self.email == "") and self.cookies == None:
             self.douban_account = False
-            
+
         if self.scrobbling:
             self.scrobbler = Scrobbler(
                 self.last_fm_username, self.last_fm_password)
@@ -95,8 +95,8 @@ class Doubanfm(object):
         self.password = getpass('豆瓣密码: ') or None
         self.last_fm_username = input('Last.fm 用户名: ') or None
         password = getpass('Last.fm 密码: ') or None
-        self.last_fm_password = md5(password.encode('utf-8')).hexdigest() 
-                
+        self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
+
     def _load_config(self):
         try:
             f = open('channels.json', 'r')
@@ -104,8 +104,8 @@ class Doubanfm(object):
             logger.debug("Load channel file.")
         except FileNotFoundError:
             logger.debug("Channels file not found.")
-            
-        try: 
+
+        try:
             f = open('cache.json', 'r')
             cache = json.load(f)
             try:
@@ -121,7 +121,7 @@ class Doubanfm(object):
                 self.last_fm_password = cache['last_fm_password']
             except (KeyError, ValueError):
                 self.scrobbling = False
-    
+
         except FileNotFoundError:
             logger.debug("Cache file not found.")
 
@@ -161,10 +161,10 @@ class Doubanfm(object):
         logger.debug('Album: ' + self.current_song.album_title)
         logger.debug('Length: ' + self.current_song.length_in_str)
         logger.debug('Sid: ' + self.current_song.sid)
-        
+
         # Post notification
-        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' - ' + 
-                self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
+        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' - ' +
+                        self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
         logger.debug(
             '{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
 

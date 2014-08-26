@@ -45,7 +45,7 @@ class Scrobbler(object):
 
         r = requests.get(self.url, params=payload)
         resp = r.text
-        
+
         if resp.startswith("OK"):
             logger.debug('Handshake OK')
             resp_info = resp.split("\n")
@@ -53,11 +53,11 @@ class Scrobbler(object):
             self.now_playing_url = resp_info[2].rstrip()
             self.submission_url = resp_info[3].rstrip()
             return True, None
-            
+
         err = None
         if resp.startswith("BANNED"):
             err = "BANNED"
-            
+
         if resp.startswith("BADTIME"):
             err = "BADTIME"
 
@@ -66,7 +66,7 @@ class Scrobbler(object):
 
         if resp.startswith("BADAUTH"):
             err = "BADAUTH"
-            
+
         return False, err
 
     def now_playing(self, artist, title, album="", length="", tracknumber="", mb_trackid=""):

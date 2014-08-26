@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger()
 
+
 class Song(object):
 
     def __init__(self, song_json):
@@ -14,7 +15,7 @@ class Song(object):
                 self.song_title = self.song_title.title()
 
             self.album_title = song_json['albumtitle']
-            
+
             self.length_in_sec = song_json['length']
 
             # Process the length of the song
