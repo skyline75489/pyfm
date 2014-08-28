@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 SYSTEM = platform.system()
-PY_MAIN_VERSION = platform.python_version_tuple()[0]
+PY_MAIN_VERSION = int(platform.python_version_tuple()[0])
 PYOBJC = False
 
 if PY_MAIN_VERSION < 3:
