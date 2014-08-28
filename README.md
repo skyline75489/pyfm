@@ -74,4 +74,4 @@
 
 The MIT License
 
-其中scrobbler.py遵循GPLv3协议
+其中[scrobbler.py](https://github.com/skyline75489/pyfm/blob/master/scrobbler.py)遵循GPLv3协议
