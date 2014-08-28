@@ -76,23 +76,6 @@ class Notifier(object):
 
     def _notify_not_available(self, **kwargs):
         pass
-        
-    def _terminal_notifier_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
-
-        args = ['-message', message]
-        args += ['-title', title]
-        args += ['-subtitle', subtitle]
-        args += ['-appIcon', appIcon]
-        args += ['-contentImage', contentImage]
-        args += ['-open', open_URL]
-
-        args = [str(arg) for arg in args]
-        output = subprocess.Popen(
-            [self.bin_path, ] + args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if output.returncode:
-            raise Exception("Some error during subprocess call.")
-
-        return output
 
     def _notify_send_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
         # Download the image
