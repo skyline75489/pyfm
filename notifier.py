@@ -90,9 +90,11 @@ class Notifier(object):
             if env_bin_path and os.path.exists(env_bin_path):
                 self.bin_path = os.path.realpath(env_bin_path)
                 self.notify = self._notify_send_notify
+                self.notify_available = True
             elif os.path.exists("/usr/bin/notify-send"):
                 self.bin_path = os.path.join("/usr/bin/", "notify-send")
                 self.notify = self._notify_send_notify
+                self.notify_available = True
             else:
                 self.notify_available = False
 
