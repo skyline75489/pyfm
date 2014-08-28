@@ -5,22 +5,41 @@ import subprocess
 import tempfile
 
 SYSTEM = platform.system()
-PY_VERSION_TUPLE = platform.python_version_tuple()
+PY_MAIN_VERSION = platform.python_version_tuple()[0]
 PYOBJC = False
 
-if int(PY_VERSION_TUPLE[0]) < 3:
+if PY_MAIN_VERSION < 3:
     import sys
     reload(sys)
     sys.setdefaultencoding('utf-8')
     
 if SYSTEM == 'Darwin':
     try:
+        import objc
         from Foundation import NSDate, NSURL, NSUserNotification, NSUserNotificationCenter
         from AppKit import NSImage
         PYOBJC = True
     except ImportError:
         PYOBJC = False
 
+def swizzle(cls, SEL, func):
+    old_IMP = cls.instanceMethodForSelector_(SEL)
+    def wrapper(self, *args, **kwargs):
+        return func(self, old_IMP, *args, **kwargs)
+    new_IMP = objc.selector(wrapper, selector=old_IMP.selector,
+                            signature=old_IMP.signature)
+    objc.classAddMethod(cls, SEL, new_IMP)
+
+def swizzled_bundleIdentifier(self, original):
+    """Swizzle [NSBundle bundleIdentifier] to make NSUserNotifications
+    work.
+    To post NSUserNotifications OS X requires the binary to be packaged
+    as an application bundle. To circumvent this restriction, we modify
+    `bundleIdentifier` to return a fake bundle identifier.
+    Original idea for this approach by Norio Numura:
+    https://github.com/norio-nomura/usernotification
+    """
+    return 'com.apple.itunes'
 
 class Notifier(object):
 
@@ -31,17 +50,7 @@ class Notifier(object):
         self.notify_available = True
 
         if SYSTEM == 'Darwin':
-            proc = subprocess.Popen(
-                ["which", "terminal-notifier"], stdout=subprocess.PIPE)
-            env_bin_path = proc.communicate()[0].strip()
-            if env_bin_path and os.path.exists(env_bin_path):
-                self.bin_path = os.path.realpath(env_bin_path)
-                self.notify = self._terminal_notifier_notify
-            elif os.path.exists("/usr/local/bin/terminal-notifier"):
-                self.bin_path = os.path.join(
-                    "/usr/local/bin/", "terminal-notifier")
-                self.notify = self._terminal_notifier_notify
-            elif PYOBJC:
+            if PYOBJC:
                 self.notify = self._pyobjc_notify
             else:
                 self.notify_available = False
@@ -62,9 +71,11 @@ class Notifier(object):
         if not self.notify_available:
             print("Notify not available.")
             self.notify = self._notify_not_available
+        self.notify = self._pyobjc_notify
+        
 
     def _notify_not_available(self, **kwargs):
-        return
+        pass
         
     def _terminal_notifier_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
 
@@ -106,6 +117,10 @@ class Notifier(object):
         )
 
     def _pyobjc_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
+
+        swizzle(objc.lookUpClass('NSBundle'),
+                b'bundleIdentifier',
+                swizzled_bundleIdentifier)
         notification = NSUserNotification.alloc().init()
         notification.setInformativeText_(message)
         if title:
