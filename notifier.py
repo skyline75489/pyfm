@@ -19,27 +19,29 @@ if SYSTEM == 'Darwin':
         from Foundation import NSDate, NSURL, NSUserNotification, NSUserNotificationCenter
         from AppKit import NSImage
         PYOBJC = True
+        
+        def swizzle(cls, SEL, func):
+            old_IMP = cls.instanceMethodForSelector_(SEL)
+            def wrapper(self, *args, **kwargs):
+                return func(self, old_IMP, *args, **kwargs)
+            new_IMP = objc.selector(wrapper, selector=old_IMP.selector,
+                                    signature=old_IMP.signature)
+            objc.classAddMethod(cls, SEL, new_IMP)
+            
+        def swizzled_bundleIdentifier(self, original):
+            """Swizzle [NSBundle bundleIdentifier] to make NSUserNotifications
+            work.
+            To post NSUserNotifications OS X requires the binary to be packaged
+            as an application bundle. To circumvent this restriction, we modify
+            `bundleIdentifier` to return a fake bundle identifier.
+            Original idea for this approach by Norio Numura:
+            https://github.com/norio-nomura/usernotification
+            """
+            return 'com.apple.itunes'
+            
     except ImportError:
         PYOBJC = False
 
-def swizzle(cls, SEL, func):
-    old_IMP = cls.instanceMethodForSelector_(SEL)
-    def wrapper(self, *args, **kwargs):
-        return func(self, old_IMP, *args, **kwargs)
-    new_IMP = objc.selector(wrapper, selector=old_IMP.selector,
-                            signature=old_IMP.signature)
-    objc.classAddMethod(cls, SEL, new_IMP)
-
-def swizzled_bundleIdentifier(self, original):
-    """Swizzle [NSBundle bundleIdentifier] to make NSUserNotifications
-    work.
-    To post NSUserNotifications OS X requires the binary to be packaged
-    as an application bundle. To circumvent this restriction, we modify
-    `bundleIdentifier` to return a fake bundle identifier.
-    Original idea for this approach by Norio Numura:
-    https://github.com/norio-nomura/usernotification
-    """
-    return 'com.apple.itunes'
 
 class Notifier(object):
 
