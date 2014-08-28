@@ -51,11 +51,37 @@ class Notifier(object):
         self.bin_path = None
         self.notify_available = True
 
-        if SYSTEM == 'Darwin':
-            if PYOBJC:
-                self.notify = self._pyobjc_notify
-            else:
-                self.notify_available = False
+        if SYSTEM == 'Darwin' and PYOBJC:
+            def _pyobjc_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
+
+                swizzle(objc.lookUpClass('NSBundle'),
+                        b'bundleIdentifier',
+                        swizzled_bundleIdentifier)
+                notification = NSUserNotification.alloc().init()
+                notification.setInformativeText_(message)
+                if title:
+                    notification.setTitle_(title)
+                if subtitle:
+                    notification.setSubtitle_(subtitle)
+                if appIcon:
+                    url = NSURL.alloc().initWithString_(appIcon)
+                    image = NSImage.alloc().initWithContentsOfURL_(url)
+                    notification.set_identityImage_(image)
+                if contentImage:
+                    url = NSURL.alloc().initWithString_(contentImage)
+                    image = NSImage.alloc().initWithContentsOfURL_(url)
+                    notification.setContentImage_(image)
+
+                if sound:
+                    notification.setSoundName_("NSUserNotificationDefaultSoundName")
+                notification.setDeliveryDate_(
+                    NSDate.dateWithTimeInterval_sinceDate_(delay, NSDate.date()))
+                NSUserNotificationCenter.defaultUserNotificationCenter().scheduleNotification_(
+                    notification)
+                    
+            self.notify = _pyobjc_notify
+        else:
+            self.notify_available = False
 
         if SYSTEM == "Linux":
             proc = subprocess.Popen(
@@ -72,9 +98,7 @@ class Notifier(object):
 
         if not self.notify_available:
             print("Notify not available.")
-            self.notify = self._notify_not_available
-        self.notify = self._pyobjc_notify
-        
+            self.notify = self._notify_not_available        
 
     def _notify_not_available(self, **kwargs):
         pass
@@ -100,33 +124,6 @@ class Notifier(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
-
-    def _pyobjc_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
-
-        swizzle(objc.lookUpClass('NSBundle'),
-                b'bundleIdentifier',
-                swizzled_bundleIdentifier)
-        notification = NSUserNotification.alloc().init()
-        notification.setInformativeText_(message)
-        if title:
-            notification.setTitle_(title)
-        if subtitle:
-            notification.setSubtitle_(subtitle)
-        if appIcon:
-            url = NSURL.alloc().initWithString_(appIcon)
-            image = NSImage.alloc().initWithContentsOfURL_(url)
-            notification.set_identityImage_(image)
-        if contentImage:
-            url = NSURL.alloc().initWithString_(contentImage)
-            image = NSImage.alloc().initWithContentsOfURL_(url)
-            notification.setContentImage_(image)
-
-        if sound:
-            notification.setSoundName_("NSUserNotificationDefaultSoundName")
-        notification.setDeliveryDate_(
-            NSDate.dateWithTimeInterval_sinceDate_(delay, NSDate.date()))
-        NSUserNotificationCenter.defaultUserNotificationCenter().scheduleNotification_(
-            notification)
 
 
 Notifier = Notifier()
