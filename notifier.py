@@ -53,7 +53,7 @@ class Notifier(object):
         self.notify_available = True
 
         if SYSTEM == 'Darwin' and PYOBJC:
-            def _pyobjc_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
+            def _pyobjc_notify(message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
 
                 swizzle(objc.lookUpClass('NSBundle'),
                         b'bundleIdentifier',

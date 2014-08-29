@@ -163,7 +163,7 @@ class Doubanfm(object):
         logger.debug('Sid: ' + self.current_song.sid)
 
         # Post notification
-        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' - ' +
+        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
                         self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
         logger.debug(
             '{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
