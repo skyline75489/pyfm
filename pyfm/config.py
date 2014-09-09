@@ -63,23 +63,3 @@ class Config(object):
 
         except Exception as e:
             logger.debug("Cache file not found.")
-
-    def save_cache(self, fm):
-        f = None
-        if not (fm.douban.user_name or self.last_fm_username):
-            return
-        try:
-            f = open('cache.json', 'w')
-            f2 = open('channels.json', 'w')
-            json.dump({
-                'user_name': fm.douban.user_name,
-                'user_id': fm.douban.user_id,
-                'expire': fm.douban.expire,
-                'token': fm.douban.token,
-                'cookies': fm.douban.cookies,
-                'last_fm_username': self.last_fm_username,
-                'last_fm_password': self.last_fm_password
-            }, f)
-            json.dump(list(fm.channels), f2)
-        except IOError:
-            raise Exception("Unable to write cache file")

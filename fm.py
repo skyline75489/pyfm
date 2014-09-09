@@ -80,6 +80,34 @@ class Doubanfm(object):
             else:
                 print("Douban 登录失败: " + err)
                 
+        self._save_account_cache()
+            
+    def _save_channel_cache(self):
+        f = None
+        try:
+            f = open('channels.json', 'w')
+            json.dump(list(self.channels), f)
+        except IOError:
+            raise Exception("Unable to write cache file")
+    
+    def _save_account_cache(self):
+        f = None
+        if not (self.douban.user_name or self.last_fm_username):
+            return
+        try:
+            f = open('cache.json', 'w')
+            json.dump({
+                'user_name': self.douban.user_name,
+                'user_id': self.douban.user_id,
+                'expire': self.douban.expire,
+                'token': self.douban.token,
+                'cookies': self.douban.cookies,
+                'last_fm_username': self.last_fm_username,
+                'last_fm_password': self.last_fm_password
+            }, f)
+        except IOError:
+            raise Exception("Unable to write cache file")
+            
     def _setup_ui(self):
         # Init terminal ui
         self.palette = [('selected', 'bold', 'default'),
@@ -89,8 +117,8 @@ class Doubanfm(object):
         self.song_change_alarm = None
 
         self.get_channels()
-        self.config.save_cache(self)
-        
+        self._save_channel_cache()
+                
     def __getattr__(self, name):
         try:
             return self.__dict__[name]
