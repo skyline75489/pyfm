@@ -8,7 +8,7 @@ from collections import deque
 
 try:
     input = raw_input
-except KeyError:
+except NameError:
     pass
     
 logger = logging.getLogger()
