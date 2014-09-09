@@ -2,9 +2,15 @@
 import json
 import logging
 
+from hashlib import md5
 from getpass import getpass
 from collections import deque
 
+try:
+    input = raw_input
+except KeyError:
+    pass
+    
 logger = logging.getLogger()
 
 
@@ -27,7 +33,7 @@ class Config(object):
         self.email = input('豆瓣账户 (Email地址): ') or None
         self.password = getpass('豆瓣密码: ') or None
         self.last_fm_username = input('Last.fm 用户名: ') or None
-        password = getpass('Last.fm 密码: ') or None
+        password = getpass('Last.fm 密码: ') or None 
         self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
 
     def load_config(self):
@@ -60,6 +66,8 @@ class Config(object):
 
     def save_cache(self, fm):
         f = None
+        if not (fm.douban.user_name or self.last_fm_username):
+            return
         try:
             f = open('cache.json', 'w')
             f2 = open('channels.json', 'w')
