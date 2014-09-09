@@ -11,15 +11,15 @@ import logging
 
 from hashlib import md5
 from collections import deque
-from getpass import getpass
 
 import urwid
 
-from douban import Douban
-from song import Song
-from player import Player
-from scrobbler import Scrobbler
-from notifier import Notifier
+from pyfm.douban import Douban
+from pyfm.song import Song
+from pyfm.player import Player
+from pyfm.scrobbler import Scrobbler
+from pyfm.notifier import Notifier
+from pyfm.config import Config
 
 logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
                     filename='fm.log',
@@ -31,42 +31,35 @@ logger = logging.getLogger()
 class Doubanfm(object):
 
     def __init__(self):
-        self.email = None
-        self.password = None
-        self.user_name = None
-        self.user_id = None
-        self.expire = None
-        self.token = None
-        self.cookies = None
-
-        self.last_fm_username = None
-        self.last_fm_password = None
-        self.scrobbling = True
-        self.douban_account = True
+        self.douban = None
+        self.player = None
+        self.config = None
+        self.scrobbler = None
+        
         self.channels = None
-
+        self.current_channel = 0
+        self.current_song = None
+        self.current_play_list = None
+        
+        self._setup_config()
+        self._setup_api_tools()
+        self._setup_ui()
+    
+    def _setup_config(self):
+        self.config = Config()
         # Set up config
         try:
             arg = sys.argv[1]
-            self._do_config()
+            self.config.do_config()
         except IndexError:
-            self._load_config()
-
+            self.config.load_config()
+    
+    def _setup_api_tools(self):
         # Init API tools
         self.douban = Douban(
             self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
         self.player = Player()
-        self.current_channel = 0
-        self.current_song = None
-        self.current_play_list = None
-
-        # Init terminal ui
-        self.palette = [('selected', 'bold', 'default'),
-                        ('title', 'yellow', 'default')]
-        self.selected_button = None
-        self.main_loop = None
-        self.song_change_alarm = None
-
+        
         # Try to login
         if self.last_fm_username is None or self.last_fm_username == "":
             self.scrobbling = False
@@ -87,61 +80,23 @@ class Doubanfm(object):
                 print("Douban 已登陆")
             else:
                 print("Douban 登录失败: " + err)
+                
+    def _setup_ui(self):
+        # Init terminal ui
+        self.palette = [('selected', 'bold', 'default'),
+                        ('title', 'yellow', 'default')]
+        self.selected_button = None
+        self.main_loop = None
+        self.song_change_alarm = None
+
         self.get_channels()
-        self._save_cache()
-
-    def _do_config(self):
-        self.email = input('豆瓣账户 (Email地址): ') or None
-        self.password = getpass('豆瓣密码: ') or None
-        self.last_fm_username = input('Last.fm 用户名: ') or None
-        password = getpass('Last.fm 密码: ') or None
-        self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
-
-    def _load_config(self):
+        self.config.save_cache(self)
+        
+    def __getattr__(self, name):
         try:
-            f = open('channels.json', 'r')
-            self.channels = deque(json.load(f))
-            logger.debug("Load channel file.")
-        except FileNotFoundError:
-            logger.debug("Channels file not found.")
-
-        try:
-            f = open('cache.json', 'r')
-            cache = json.load(f)
-            try:
-                self.user_name = cache['user_name']
-                self.user_id = cache['user_id']
-                self.expire = cache['expire']
-                self.token = cache['token']
-                self.cookies = cache['cookies']
-            except (KeyError, ValueError):
-                self.douban_account = False
-            try:
-                self.last_fm_username = cache['last_fm_username']
-                self.last_fm_password = cache['last_fm_password']
-            except (KeyError, ValueError):
-                self.scrobbling = False
-
-        except FileNotFoundError:
-            logger.debug("Cache file not found.")
-
-    def _save_cache(self):
-        f = None
-        try:
-            f = open('cache.json', 'w')
-            f2 = open('channels.json', 'w')
-            json.dump({
-                'user_name': self.douban.user_name,
-                'user_id': self.douban.user_id,
-                'expire': self.douban.expire,
-                'token': self.douban.token,
-                'cookies': self.douban.cookies,
-                'last_fm_username': self.last_fm_username,
-                'last_fm_password': self.last_fm_password
-            }, f)
-            json.dump(list(self.channels), f2)
-        except IOError:
-            raise Exception("Unable to write cache file")
+            return self.__dict__[name]
+        except KeyError:
+            return self.config.__dict__[name]
 
     def get_channels(self):
         if self.channels is None:
