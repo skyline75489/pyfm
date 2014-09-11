@@ -19,6 +19,7 @@ from pyfm.player import Player
 from pyfm.scrobbler import Scrobbler
 from pyfm.notifier import Notifier
 from pyfm.config import Config
+from pyfm.ui import ChannelButton, ChannelListBox
 
 logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
                     filename='fm.log',
@@ -43,7 +44,9 @@ class Doubanfm(object):
         self._setup_config()
         self._setup_api_tools()
         self._setup_ui()
-    
+        
+        self._setup_signals()
+        
     def _setup_config(self):
         self.config = Config()
         # Set up config
@@ -81,7 +84,40 @@ class Doubanfm(object):
                 print("Douban 登录失败: " + err)
                 
         self._save_account_cache()
+    
+    def _setup_ui(self):
+        # Init terminal ui
+        self.palette = [('selected', 'bold', 'default'),
+                        ('title', 'yellow', 'default')]
+        self.selected_button = None
+        self.main_loop = None
+        self.song_change_alarm = None
+
+        self.get_channels()
+        
+        self.title = urwid.AttrMap(urwid.Text('豆瓣FM'), 'title')
+        self.divider = urwid.Divider()
+        self.pile = urwid.Padding(
+            urwid.Pile([self.divider, self.title, self.divider]), left=4, right=4)
+        self.channel_list_box = self.getChannelListBox()
+        self.box = urwid.Padding(self.channel_list_box, left=2, right=4)
+
+        self.frame = urwid.Frame(self.box, header=self.pile, footer=self.divider)
+
+        self.main_loop = urwid.MainLoop(
+            self.frame, self.palette, handle_mouse=False)
             
+        # Cache the channel list
+        self._save_channel_cache()
+        
+    def _setup_signals(self):
+        urwid.register_signal(ChannelListBox, ['exit', 'skip', 'rate', 'trash'])
+
+        urwid.connect_signal(self.channel_list_box, 'exit', self.on_exit)
+        urwid.connect_signal(self.channel_list_box, 'skip', self.on_skip)
+        urwid.connect_signal(self.channel_list_box, 'rate', self.on_rate_and_unrate)
+        urwid.connect_signal(self.channel_list_box, 'trash', self.on_trash)
+        
     def _save_channel_cache(self):
         f = None
         try:
@@ -108,17 +144,6 @@ class Doubanfm(object):
         except IOError:
             raise Exception("Unable to write cache file")
             
-    def _setup_ui(self):
-        # Init terminal ui
-        self.palette = [('selected', 'bold', 'default'),
-                        ('title', 'yellow', 'default')]
-        self.selected_button = None
-        self.main_loop = None
-        self.song_change_alarm = None
-
-        self.get_channels()
-        self._save_channel_cache()
-                
     def __getattr__(self, name):
         try:
             return self.__dict__[name]
@@ -127,7 +152,10 @@ class Doubanfm(object):
 
     def get_channels(self):
         if self.channels is None:
-            self.channels = deque(self.douban.get_channels())
+            try:
+                self.channels = self.cached_channels
+            except AttributeError:
+                self.channels = deque(self.douban.get_channels())
 
     def _choose_channel(self, channel):
         self.current_channel = channel
@@ -137,12 +165,6 @@ class Doubanfm(object):
     def _play_track(self):
         _song = self.current_play_list.popleft()
         self.current_song = Song(_song)
-        logger.debug('Playing Track')
-        logger.debug('Artist: ' + self.current_song.artist)
-        logger.debug('Title: ' + self.current_song.song_title)
-        logger.debug('Album: ' + self.current_song.album_title)
-        logger.debug('Length: ' + self.current_song.length_in_str)
-        logger.debug('Sid: ' + self.current_song.sid)
 
         # Post notification
         Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
@@ -245,33 +267,16 @@ class Doubanfm(object):
         else:
             logger.error(err)
 
-    def quit(self):
-        logger.debug('Quit')
-        self.player.stop()
-
-    def start(self):
-        title = urwid.AttrMap(urwid.Text('豆瓣FM'), 'title')
-        divider = urwid.Divider()
-        pile = urwid.Padding(
-            urwid.Pile([divider, title, divider]), left=4, right=4)
-        box = urwid.Padding(self.ChannelListBox(), left=2, right=4)
-
-        frame = urwid.Frame(box, header=pile, footer=divider)
-
-        self.main_loop = urwid.MainLoop(
-            frame, self.palette, handle_mouse=False)
-        self.main_loop.run()
-
-    def ChannelListBox(self):
+    def getChannelListBox(self):
         body = []
         for c in self.channels:
             _channel = ChannelButton(c['name'])
             urwid.connect_signal(
-                _channel, 'click', self.channel_chosen, c['channel_id'])
+                _channel, 'click', self.on_channel_chosen, c['channel_id'])
             body.append(urwid.AttrMap(_channel, None, focus_map="channel"))
-        return MyListBox(urwid.SimpleFocusListWalker(body), self)
+        return ChannelListBox(urwid.SimpleFocusListWalker(body))
 
-    def channel_chosen(self, button, choice):
+    def on_channel_chosen(self, button, choice):
         # Choose the channel which is playing right now
         # ignore this
         if self.selected_button == button:
@@ -287,50 +292,33 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
+    
+    def on_skip(self):
+        self.skip_current_song()
+        
+    def on_rate_and_unrate(self):
+        if self.current_song.like:
+            self.unrate_current_song()
+        else:
+            self.rate_current_song()
+    
+    def on_trash(self):
+        self.trash_current_song()
+        
+    def on_exit(self):
+        self.exit()
+    
+    def exit(self):
+        logger.debug('Exit')
+        self.player.stop()
+        raise urwid.ExitMainLoop()
 
-
-class ChannelButton(urwid.Button):
-
-    def __init__(self, caption):
-        super(ChannelButton, self).__init__("")
-        self._text = urwid.SelectableIcon([u'\N{BULLET} ', caption], 0)
-        self._w = urwid.AttrMap(self._text, None, focus_map='selected')
-
-    @property
-    def text(self):
-        return self._text.text
-
-    def set_text(self, text):
-        self._text.set_text(text)
-
-
-class MyListBox(urwid.ListBox):
-
-    def __init__(self, body, fm):
-        super(MyListBox, self).__init__(body)
-        self.fm = fm
-
-    def keypress(self, size, key):
-        if key in ('up', 'down', 'page up', 'page down', 'enter'):
-            return super(MyListBox, self).keypress(size, key)
-        if key == ('j'):
-            return super(MyListBox, self).keypress(size, 'down')
-        if key == ('k'):
-            return super(MyListBox, self).keypress(size, 'up')
-        if key in ('q', 'Q'):
-            self.fm.quit()
-            raise urwid.ExitMainLoop()
-        if key == ('n'):
-            self.fm.skip_current_song()
-        if key == ('l'):
-            if self.fm.current_song.like:
-                self.fm.unrate_current_song()
-            else:
-                self.fm.rate_current_song()
-        if key == ('t'):
-            self.fm.trash_current_song()
-
-
-if __name__ == "__main__":
+    def start(self):
+        self.main_loop.run()
+    
+def main():
     fm = Doubanfm()
     fm.start()
+    
+if __name__ == "__main__":
+    main()

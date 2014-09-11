@@ -39,7 +39,7 @@ class Config(object):
     def load_config(self):
         try:
             f = open('channels.json', 'r')
-            self.channels = deque(json.load(f))
+            self.cached_channels = deque(json.load(f))
             logger.debug("Load channel file.")
         except Exception as e:
             logger.debug("Channels file not found.")
