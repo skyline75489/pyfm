@@ -30,6 +30,7 @@ logger = logging.getLogger()
 WHITE_HEART = u'\N{WHITE HEART SUIT}'
 BLACK_HEART = u'\N{BLACK HEART SUIT}'
 
+
 class Doubanfm(object):
 
     def __init__(self):
@@ -37,17 +38,17 @@ class Doubanfm(object):
         self.player = None
         self.config = None
         self.scrobbler = None
-        
+
         self.channels = None
         self.current_channel = 0
         self.current_song = None
         self.current_play_list = None
-        
+
         self._setup_config()
         self._setup_api_tools()
         self._setup_ui()
         self._setup_signals()
-        
+
     def _setup_config(self):
         self.config = Config()
         # Set up config
@@ -56,13 +57,13 @@ class Doubanfm(object):
             self.config.do_config()
         except IndexError:
             self.config.load_config()
-    
+
     def _setup_api_tools(self):
         # Init API tools
         self.douban = Douban(
             self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
         self.player = Player()
-        
+
         # Try to login
         if self.last_fm_username is None or self.last_fm_username == "":
             self.scrobbling = False
@@ -83,9 +84,9 @@ class Doubanfm(object):
                 print("Douban 已登陆")
             else:
                 print("Douban 登录失败: " + err)
-                
+
         self._save_account_cache()
-    
+
     def _setup_ui(self):
         # Init terminal ui
         self.palette = [('selected', 'bold', 'default'),
@@ -95,7 +96,7 @@ class Doubanfm(object):
         self.song_change_alarm = None
 
         self.get_channels()
-        
+
         self.title = urwid.AttrMap(urwid.Text('豆瓣FM'), 'title')
         self.divider = urwid.Divider()
         self.pile = urwid.Padding(
@@ -103,22 +104,25 @@ class Doubanfm(object):
         self.channel_list_box = self.getChannelListBox()
         self.box = urwid.Padding(self.channel_list_box, left=2, right=4)
 
-        self.frame = urwid.Frame(self.box, header=self.pile, footer=self.divider)
+        self.frame = urwid.Frame(
+            self.box, header=self.pile, footer=self.divider)
 
         self.main_loop = urwid.MainLoop(
             self.frame, self.palette, handle_mouse=False)
-            
+
         # Cache the channel list
         self._save_channel_cache()
-        
+
     def _setup_signals(self):
-        urwid.register_signal(ChannelListBox, ['exit', 'skip', 'rate', 'trash'])
+        urwid.register_signal(
+            ChannelListBox, ['exit', 'skip', 'rate', 'trash'])
 
         urwid.connect_signal(self.channel_list_box, 'exit', self.on_exit)
         urwid.connect_signal(self.channel_list_box, 'skip', self.on_skip)
-        urwid.connect_signal(self.channel_list_box, 'rate', self.on_rate_and_unrate)
+        urwid.connect_signal(
+            self.channel_list_box, 'rate', self.on_rate_and_unrate)
         urwid.connect_signal(self.channel_list_box, 'trash', self.on_trash)
-        
+
     def _save_channel_cache(self):
         f = None
         try:
@@ -126,7 +130,7 @@ class Doubanfm(object):
             json.dump(list(self.channels), f)
         except IOError:
             raise Exception("Unable to write cache file")
-    
+
     def _save_account_cache(self):
         f = None
         if not (self.douban.user_name or self.last_fm_username):
@@ -144,7 +148,7 @@ class Doubanfm(object):
             }, f)
         except IOError:
             raise Exception("Unable to write cache file")
-            
+
     def __getattr__(self, name):
         try:
             return self.__dict__[name]
@@ -293,22 +297,22 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
-    
+
     def on_skip(self):
         self.skip_current_song()
-        
+
     def on_rate_and_unrate(self):
         if self.current_song.like:
             self.unrate_current_song()
         else:
             self.rate_current_song()
-    
+
     def on_trash(self):
         self.trash_current_song()
-        
+
     def on_exit(self):
         self.exit()
-    
+
     def exit(self):
         logger.debug('Exit')
         self.player.stop()
@@ -316,10 +320,11 @@ class Doubanfm(object):
 
     def start(self):
         self.main_loop.run()
-    
+
+
 def main():
     fm = Doubanfm()
     fm.start()
-    
+
 if __name__ == "__main__":
     main()
