@@ -1,7 +1,9 @@
 import urwid
 
 class ChannelButton(urwid.Button):
-
+    """
+    A urwid.Button that can easily change its text 
+    """
     def __init__(self, caption):
         super(ChannelButton, self).__init__("")
         self._text = urwid.SelectableIcon([u'\N{BULLET} ', caption], 0)
@@ -16,7 +18,9 @@ class ChannelButton(urwid.Button):
 
 
 class ChannelListBox(urwid.ListBox):
-
+    """
+    A urwid.ListBox that can control player by emitting signals
+    """
     def __init__(self, body):
         super(ChannelListBox, self).__init__(body)
         self._command_map['j'] = 'cursor down'

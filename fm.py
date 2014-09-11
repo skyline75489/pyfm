@@ -27,6 +27,8 @@ logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s 
 
 logger = logging.getLogger()
 
+WHITE_HEART = u'\N{WHITE HEART SUIT}'
+BLACK_HEART = u'\N{BLACK HEART SUIT}'
 
 class Doubanfm(object):
 
@@ -44,7 +46,6 @@ class Doubanfm(object):
         self._setup_config()
         self._setup_api_tools()
         self._setup_ui()
-        
         self._setup_signals()
         
     def _setup_config(self):
@@ -175,9 +176,9 @@ class Doubanfm(object):
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                                              self.next_song, None)
         self.selected_button.set_text(self.selected_button.text[0:11].strip())
-        heart = u'\N{WHITE HEART SUIT}'
+        heart = WHITE_HEART
         if self.current_song.like:
-            heart = u'\N{BLACK HEART SUIT}'
+            heart = BLACK_HEART
         if not self.douban_account:
             heart = ' '
         self.selected_button.set_text(self.selected_button.text + '                 ' + heart + '  ' +
@@ -235,7 +236,7 @@ class Doubanfm(object):
         if r:
             self.current_song.like = True
             self.selected_button.set_text(self.selected_button.text.replace(
-                u'\N{WHITE HEART SUIT}', u'\N{BLACK HEART SUIT}'))
+                WHITE_HEART, BLACK_HEART))
             logger.debug('Rate song OK')
         else:
             logger.error(err)
@@ -248,7 +249,7 @@ class Doubanfm(object):
         if r:
             self.current_song.like = False
             self.selected_button.set_text(self.selected_button.text.replace(
-                u'\N{BLACK HEART SUIT}', u'\N{WHITE HEART SUIT}'))
+                BLACK_HEART, WHITE_HEART))
             logger.debug('Unrate song OK')
         else:
             logger.error(err)
