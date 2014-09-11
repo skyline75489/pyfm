@@ -29,7 +29,7 @@ class ChannelListBox(urwid.ListBox):
     def __init__(self, body):
         super(ChannelListBox, self).__init__(body)
         self._command_map['j'] = 'cursor down'
-        self._command_map['k'] = 'cursor down'
+        self._command_map['k'] = 'cursor up'
         self._command_map['q'] = 'exit'
         self._command_map['Q'] = 'exit'
 
