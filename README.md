@@ -41,11 +41,11 @@
 
 ## 使用
 
-    python pyfm.py
+    python fm.py
 
 ## 配置
 
-    python pyfm.py config
+    python fm.py config
     
 根据提示输入账户，密码等，豆瓣账户密码不会保存在本地，豆瓣Token，Cookie，Last.fm账户名，Last.fm密码的md5值等保存在cache.json中。
 
