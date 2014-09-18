@@ -1,6 +1,9 @@
 豆瓣FM命令行播放器
 ==================
 
+.. image:: https://badge.fury.io/py/pyfm.png
+    :target: http://badge.fury.io/py/pyfm
+
 使用Python编写的豆瓣FM命令行播放器
 
 |Screenshot|
@@ -84,6 +87,7 @@
 Changelog
 ---------
 
+-  0.2 代码大规模重构
 -  0.1 第一个正式版本
 
 协议
