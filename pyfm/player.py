@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from multiprocessing import Process
@@ -10,6 +11,13 @@ class Player(object):
         self.current_song = None
         self.player_process = None
         self.return_code = 0
+
+        proc = subprocess.Popen(
+                ["which", "mpg123"], stdout=subprocess.PIPE)
+        env_bin_path = proc.communicate()[0].strip()
+        if not (env_bin_path and os.path.exists(env_bin_path)):
+            print("mpg123 not found. Exit.")
+            raise SystemExit()
 
     def play(self, song):
         self.current_song = song

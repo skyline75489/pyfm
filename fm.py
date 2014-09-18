@@ -56,9 +56,9 @@ class Doubanfm(object):
 
     def _setup_api_tools(self):
         # Init API tools
+        self.player = Player()
         self.douban = Douban(
             self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
-        self.player = Player()
 
         # Try to login
         if self.last_fm_username is None or self.last_fm_username == "":

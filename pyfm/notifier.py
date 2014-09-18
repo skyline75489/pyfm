@@ -30,14 +30,7 @@ if SYSTEM == 'Darwin':
             objc.classAddMethod(cls, SEL, new_IMP)
 
         def swizzled_bundleIdentifier(self, original):
-            """Swizzle [NSBundle bundleIdentifier] to make NSUserNotifications
-            work.
-            To post NSUserNotifications OS X requires the binary to be packaged
-            as an application bundle. To circumvent this restriction, we modify
-            `bundleIdentifier` to return a fake bundle identifier.
-            Original idea for this approach by Norio Numura:
-            https://github.com/norio-nomura/usernotification
-            """
+            # Use iTunes icon for notification
             return 'com.apple.itunes'
 
     except ImportError:
