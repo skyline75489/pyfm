@@ -21,10 +21,6 @@ from pyfm.notifier import Notifier
 from pyfm.config import Config
 from pyfm.ui import ChannelButton, ChannelListBox
 
-logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
-                    filename='fm.log',
-                    level=logging.DEBUG)
-
 logger = logging.getLogger()
 
 WHITE_HEART = u'\N{WHITE HEART SUIT}'
@@ -75,17 +71,19 @@ class Doubanfm(object):
                 self.last_fm_username, self.last_fm_password)
             r, err = self.scrobbler.handshake()
             if r:
-                print("Last.FM 已登陆")
+                logger.debug("Last.fm logged in.")
             else:
                 print("Last.FM 登录失败: " + err)
         if self.douban_account:
             r, err = self.douban.do_login()
             if r:
-                print("Douban 已登陆")
+                logger.debug("Douban logged in")
             else:
                 print("Douban 登录失败: " + err)
 
-        self._save_account_cache()
+        # Refresh account cache
+        self.config.save_account_cache(self.douban.user_name, self.douban.user_id, self.douban.expire, self.douban.token, self.douban.cookies,
+                                       self.last_fm_username, self.last_fm_password)
 
     def _setup_ui(self):
         # Init terminal ui
@@ -97,7 +95,18 @@ class Doubanfm(object):
 
         self.get_channels()
 
-        self.title = urwid.AttrMap(urwid.Text('豆瓣FM'), 'title')
+        title = '豆瓣FM' + ' '*32
+        if self.douban_account:
+            title += '豆瓣已登录'
+        else:
+            title += '豆瓣未登陆'
+        title += ' '*3
+        if self.scrobbling:
+            title += 'Last.fm 已登录'
+        else:
+            title += 'Last.fm 未登录'
+
+        self.title = urwid.AttrMap(urwid.Text(title), 'title')
         self.divider = urwid.Divider()
         self.pile = urwid.Padding(
             urwid.Pile([self.divider, self.title, self.divider]), left=4, right=4)
@@ -111,7 +120,7 @@ class Doubanfm(object):
             self.frame, self.palette, handle_mouse=False)
 
         # Cache the channel list
-        self._save_channel_cache()
+        self.config.save_channel_cache(self.channels)
 
     def _setup_signals(self):
         urwid.register_signal(
@@ -123,32 +132,6 @@ class Doubanfm(object):
             self.channel_list_box, 'rate', self.on_rate_and_unrate)
         urwid.connect_signal(self.channel_list_box, 'trash', self.on_trash)
 
-    def _save_channel_cache(self):
-        f = None
-        try:
-            f = open('channels.json', 'w')
-            json.dump(list(self.channels), f)
-        except IOError:
-            raise Exception("Unable to write cache file")
-
-    def _save_account_cache(self):
-        f = None
-        if not (self.douban.user_name or self.last_fm_username):
-            return
-        try:
-            f = open('cache.json', 'w')
-            json.dump({
-                'user_name': self.douban.user_name,
-                'user_id': self.douban.user_id,
-                'expire': self.douban.expire,
-                'token': self.douban.token,
-                'cookies': self.douban.cookies,
-                'last_fm_username': self.last_fm_username,
-                'last_fm_password': self.last_fm_password
-            }, f)
-        except IOError:
-            raise Exception("Unable to write cache file")
-
     def __getattr__(self, name):
         try:
             return self.__dict__[name]
@@ -159,7 +142,7 @@ class Doubanfm(object):
         if self.channels is None:
             try:
                 self.channels = self.cached_channels
-            except AttributeError:
+            except KeyError:
                 self.channels = deque(self.douban.get_channels())
 
     def _choose_channel(self, channel):

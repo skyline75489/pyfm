@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import json
 import logging
 
@@ -10,11 +11,24 @@ try:
     input = raw_input
 except NameError:
     pass
-    
+
+HOME_PATH = os.getenv('HOME')
+BASIC_PATH = os.path.join(HOME_PATH, '.pyfm')
+ACCOUNT_CACHE_PATH = os.path.join(BASIC_PATH, 'account_cache.json')
+CHANNELS_CACHE_PATH = os.path.join(BASIC_PATH, 'channels_cache.json')
+
+if not os.path.isdir(BASIC_PATH):
+    os.mkdir(BASIC_PATH)
+
+logging.basicConfig(format='[%(asctime)s] %(filename)s:%(lineno)d %(levelname)s %(message)s',
+                    filename=os.path.join(BASIC_PATH, 'fm.log'),
+                    level=logging.DEBUG)
+
 logger = logging.getLogger()
 
 
 class Config(object):
+
     def __init__(self):
         self.email = None
         self.password = None
@@ -28,24 +42,27 @@ class Config(object):
         self.last_fm_password = None
         self.scrobbling = True
         self.douban_account = True
-        
+
+        self.account_cache_path = ACCOUNT_CACHE_PATH
+        self.channels_cache_path = CHANNELS_CACHE_PATH
+
     def do_config(self):
         self.email = input('豆瓣账户 (Email地址): ') or None
         self.password = getpass('豆瓣密码: ') or None
         self.last_fm_username = input('Last.fm 用户名: ') or None
-        password = getpass('Last.fm 密码: ') or None 
+        password = getpass('Last.fm 密码: ') or None
         self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
 
     def load_config(self):
         try:
-            f = open('channels.json', 'r')
+            f = open(self.channels_cache_path, 'r')
             self.cached_channels = deque(json.load(f))
             logger.debug("Load channel file.")
         except Exception as e:
             logger.debug("Channels file not found.")
-            
+
         try:
-            f = open('cache.json', 'r')
+            f = open(self.account_cache_path, 'r')
             cache = json.load(f)
             try:
                 self.user_name = cache['user_name']
@@ -63,3 +80,29 @@ class Config(object):
 
         except Exception as e:
             logger.debug("Cache file not found.")
+
+    def save_channel_cache(self, channels):
+        f = None
+        try:
+            f = open(self.channels_cache_path, 'w')
+            json.dump(list(channels), f)
+        except IOError:
+            raise Exception("Unable to write cache file")
+
+    def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None):
+        f = None
+        if not (user_name or last_fm_username):
+            return
+        try:
+            f = open(self.account_cache_path, 'w')
+            json.dump({
+                'user_name': user_name,
+                'user_id': user_id,
+                'expire': expire,
+                'token': token,
+                'cookies': cookies,
+                'last_fm_username': last_fm_username,
+                'last_fm_password': last_fm_password
+            }, f)
+        except IOError:
+            raise Exception("Unable to write cache file")
