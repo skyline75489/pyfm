@@ -74,12 +74,15 @@ class Doubanfm(object):
                 logger.debug("Last.fm logged in.")
             else:
                 print("Last.FM 登录失败: " + err)
+                self.scrobbling = False
+        
         if self.douban_account:
             r, err = self.douban.do_login()
             if r:
                 logger.debug("Douban logged in")
             else:
                 print("Douban 登录失败: " + err)
+                self.douban_account = False
 
         # Refresh account cache
         self.config.save_account_cache(self.douban.user_name, self.douban.user_id, self.douban.expire, self.douban.token, self.douban.cookies,
