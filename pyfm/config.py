@@ -51,7 +51,11 @@ class Config(object):
         self.password = getpass('豆瓣密码: ') or None
         self.last_fm_username = input('Last.fm 用户名: ') or None
         password = getpass('Last.fm 密码: ') or None
-        self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
+        if password is None:
+            self.last_fm_password = None
+            return
+        else :
+            self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
 
     def load_config(self):
         try:
