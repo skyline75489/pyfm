@@ -76,7 +76,7 @@ class Doubanfm(object):
             else:
                 print("Last.FM 登录失败: " + err)
                 self.scrobbling = False
-        
+
         if self.douban_account:
             r, err = self.douban.do_login()
             if r:
@@ -99,12 +99,12 @@ class Doubanfm(object):
 
         self.get_channels()
 
-        title = '豆瓣FM' + ' '*32
+        title = '豆瓣FM' + ' ' * 32
         if self.douban_account:
             title += '豆瓣已登录'
         else:
             title += '豆瓣未登陆'
-        title += ' '*3
+        title += ' ' * 3
         if self.scrobbling:
             title += 'Last.fm 已登录'
         else:
@@ -188,7 +188,7 @@ class Doubanfm(object):
                 self.current_song.sid, self.current_channel)
             logger.debug('Got {0} more tracks'.format(len(playing_list)))
             self.current_play_list.extend(deque(playing_list))
-        
+
     def next_song(self, loop, user_data):
         # Scrobble the track if scrobbling is enabled
         # and total playback time of the track > 30s
@@ -206,7 +206,7 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
-        
+
     def current_song_required(f):
         @wraps(f)
         def wrapper(self, *args, **kwds):
@@ -214,7 +214,7 @@ class Doubanfm(object):
                 return
             return f(*args, **kwds)
         return wrapper
-    
+
     def douban_account_required(f):
         @wraps(f)
         def wrapper(self, *args, **kwds):
@@ -222,7 +222,7 @@ class Doubanfm(object):
                 return
             return f(*args, **kwds)
         return wrapper
-        
+
     @current_song_required
     def skip_current_song(self):
         if self.douban_account:
@@ -235,7 +235,7 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
-        
+
     @current_song_required
     @douban_account_required
     def rate_current_song(self):
@@ -248,7 +248,7 @@ class Doubanfm(object):
             logger.debug('Rate song OK')
         else:
             logger.error(err)
-    
+
     @current_song_required
     @douban_account_required
     def unrate_current_song(self):
@@ -261,7 +261,7 @@ class Doubanfm(object):
             logger.debug('Unrate song OK')
         else:
             logger.error(err)
-            
+
     @current_song_required
     @douban_account_required
     def trash_current_song(self):
