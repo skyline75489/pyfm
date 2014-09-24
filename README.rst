@@ -24,7 +24,7 @@
 依赖
 ----
 
--  `mpg123 <http://www.mpg123.de>`__
+-  `mpg123 <http://www.mpg123.de>`__ (如果安装了 `mpv <http://mpv.io>`__ 或 `mplayer <http://mplayerhq.hu>`__ 亦会自动使用)
 -  `requests <https://github.com/kennethreitz/requests>`__
 -  `urwid <http://urwid.org>`__
 

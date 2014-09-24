@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-from multiprocessing import Process
-
 
 class Player(object):
 
@@ -11,12 +9,25 @@ class Player(object):
         self.current_song = None
         self.player_process = None
         self.return_code = 0
+        self.detect_external_players()
 
-        proc = subprocess.Popen(
-                ["which", "mpg123"], stdout=subprocess.PIPE)
-        env_bin_path = proc.communicate()[0].strip()
-        if not (env_bin_path and os.path.exists(env_bin_path)):
-            print("mpg123 not found. Exit.")
+    def detect_external_players(self):
+        supported_external_players = [
+            ["mpv", "--really-quiet"],
+            ["mplayer", "-really-quiet"],
+            ["mpg123", "-q"],
+        ]
+
+        for external_player in supported_external_players:
+            proc = subprocess.Popen(
+                    ["which", external_player[0]], stdout=subprocess.PIPE)
+            env_bin_path = proc.communicate()[0].strip()
+            if (env_bin_path and os.path.exists(env_bin_path)):
+                self.external_player = external_player
+                break
+
+        else:
+            print("no supported player found. Exit.")
             raise SystemExit()
 
     def play(self, song):
@@ -24,7 +35,7 @@ class Player(object):
         # using mpg123 to play the track
         # -q(quiet) remove the output to stdout
         self.player_process = subprocess.Popen(
-            ["mpg123", "-q", self.current_song.url])
+            self.external_player + [self.current_song.url])
         self.is_playing = True
 
     def stop(self):
