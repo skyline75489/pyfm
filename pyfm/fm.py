@@ -212,7 +212,7 @@ class Doubanfm(object):
         def wrapper(self, *args, **kwds):
             if self.current_song is None:
                 return
-            return f(*args, **kwds)
+            return f(self, *args, **kwds)
         return wrapper
 
     def douban_account_required(f):
@@ -220,7 +220,7 @@ class Doubanfm(object):
         def wrapper(self, *args, **kwds):
             if not self.douban_account:
                 return
-            return f(*args, **kwds)
+            return f(self, *args, **kwds)
         return wrapper
 
     @current_song_required
