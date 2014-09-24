@@ -10,6 +10,7 @@ import logging
 
 from hashlib import md5
 from collections import deque
+from functools import wraps
 
 import urwid
 
@@ -187,7 +188,7 @@ class Doubanfm(object):
                 self.current_song.sid, self.current_channel)
             logger.debug('Got {0} more tracks'.format(len(playing_list)))
             self.current_play_list.extend(deque(playing_list))
-
+        
     def next_song(self, loop, user_data):
         # Scrobble the track if scrobbling is enabled
         # and total playback time of the track > 30s
@@ -205,7 +206,24 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
-
+        
+    def current_song_required(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwds):
+            if self.current_song is None:
+                return
+            return f(*args, **kwds)
+        return wrapper
+    
+    def douban_account_required(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwds):
+            if not self.douban_account:
+                return
+            return f(*args, **kwds)
+        return wrapper
+        
+    @current_song_required
     def skip_current_song(self):
         if self.douban_account:
             r, err = self.douban.skip_song(
@@ -217,10 +235,10 @@ class Doubanfm(object):
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
-
+        
+    @current_song_required
+    @douban_account_required
     def rate_current_song(self):
-        if not self.douban_account:
-            return
         r, err = self.douban.rate_song(
             self.current_song.sid, self.current_channel)
         if r:
@@ -230,10 +248,10 @@ class Doubanfm(object):
             logger.debug('Rate song OK')
         else:
             logger.error(err)
-
+    
+    @current_song_required
+    @douban_account_required
     def unrate_current_song(self):
-        if not self.douban_account:
-            return
         r, err = self.douban.unrate_song(
             self.current_song.sid, self.current_channel)
         if r:
@@ -243,10 +261,10 @@ class Doubanfm(object):
             logger.debug('Unrate song OK')
         else:
             logger.error(err)
-
+            
+    @current_song_required
+    @douban_account_required
     def trash_current_song(self):
-        if not self.douban_account:
-            return
         r, err = self.douban.bye_song(
             self.current_song.sid, self.current_channel)
         if r:
