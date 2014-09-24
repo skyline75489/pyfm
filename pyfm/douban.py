@@ -33,6 +33,7 @@ class Douban:
         self.user_name = user_name
         self.cookies = cookies
         
+        self.logged_in = False
         self.channels = None
 
     def _do_api_request(self, _type, sid=None, channel=None, kbps=64):
@@ -45,6 +46,7 @@ class Douban:
     def do_login(self):
         # Has cookies already. No need to login again.
         if self.cookies:
+            self.logged_in = True
             return True, None
         payload = {'email': self.email, 'password': self.password,
                    'app_name': self.app_name, 'version': self.version}
@@ -56,6 +58,7 @@ class Douban:
             self.expire = r.json()['expire']
             self.token = r.json()['token']
             self.cookies = r.cookies.get_dict()
+            self.logged_in = True
             return True, None
         else:
             return False, r.json()['err']
@@ -69,9 +72,20 @@ class Douban:
         if self.channels is None:
             r = requests.get(self.channel_url)
             # Cache channels
-            self.channels = r.json()['channels']
+            channels = r.json()['channels']
+            if self.logged_in:
+                # No api for this. 
+                # We have to manually add this.
+                heart = {u'seq_id': -3, 
+                        u'name_en': u'Heart', 
+                        u'abbr_en': u'Heart', 
+                        u'name': u'红心兆赫', 
+                        u'channel_id': -3}
+                channels.insert(0, heart)
+            self.channels = channels
             return self.channels
-        return self.channels
+        else:
+            return self.channels
 
     def get_new_play_list(self, channel, kbps=64):
         _type = self._get_type('new')
