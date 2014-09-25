@@ -76,7 +76,7 @@ class Doubanfm(object):
                 print(HELP)
                 raise SystemExit()
             else:
-                raise SystemExit('Unknown arguments. Try pyfm help for more info.')
+                raise SystemExit('Bad arguments. Try "help" for more info.')
         except IndexError:
             self.config.load_config()
 
