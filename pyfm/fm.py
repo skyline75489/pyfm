@@ -24,8 +24,27 @@ from pyfm.ui import ChannelButton, ChannelListBox
 
 logger = logging.getLogger()
 
+
+__version__ = '0.2.3'
+
 WHITE_HEART = u'\N{WHITE HEART SUIT}'
 BLACK_HEART = u'\N{BLACK HEART SUIT}'
+
+HELP = """
+pyfm 0.2.3   使用Python编写的豆瓣FM命令行播放器
+
+更新或安装：
+$ [sudo] pip install pyfm --upgrade
+
+配置：
+$ pyfm config
+
+操作快捷键：
+    [n]  ->  跳过当前歌曲
+    [l]  ->  给当前歌曲添加红心或删除红心
+    [t]  ->  不再播放当前歌曲
+    [q]  ->  退出播放器
+"""
 
 
 class Doubanfm(object):
@@ -51,7 +70,13 @@ class Doubanfm(object):
         # Set up config
         try:
             arg = sys.argv[1]
-            self.config.do_config()
+            if arg == 'config':
+                self.config.do_config()
+            elif arg in ['help', '-h', '--help']:
+                print(HELP)
+                raise SystemExit()
+            else:
+                raise SystemExit('Unknown arguments. Try pyfm help for more info.')
         except IndexError:
             self.config.load_config()
 
