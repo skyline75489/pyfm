@@ -35,6 +35,8 @@
 ::
 
     (sudo)pip install pyfm
+    
+如果直接git clone整个仓库，请把fm.py移动到上层目录，然后执行 `python fm.py` 
 
 安装依赖
 --------
