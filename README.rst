@@ -32,22 +32,15 @@
 安装
 ----
 
+请首先安装支持的后端播放器中的某一个，然后使用pip安装本软件：
+
 ::
 
     (sudo)pip install pyfm
     
-如果直接git clone整个仓库，请把fm.py移动到上层目录，然后执行 `python fm.py` 
 
-安装依赖
---------
+如果选择直接git clone整个仓库的方法安装，请先安装相关依赖，然后把pyfm目录下的fm.py移动到上层目录，然后执行 `python fm.py` 
 
-::
-
-    # Linux平台上使用apt-get安装mpg123
-    sudo apt-get install mpg123
-
-    # Mac OS X 上使用Homebrew安装
-    brew install mpg123
 
 使用
 ----
@@ -74,6 +67,12 @@
     [l]  ->  给当前歌曲添加红心或删除红心
     [t]  ->  不再播放当前歌曲
     [q]  ->  退出播放器
+
+
+出现问题？
+-----------
+
+请尝试清空$HOME/.pyfm/目录下的所有内容，重新安装等，如还不能解决，欢迎向我提issue。
 
 致谢
 ----
