@@ -35,7 +35,8 @@ class Player(object):
         # using mpg123 to play the track
         # -q(quiet) remove the output to stdout
         self.player_process = subprocess.Popen(
-            self.external_player + [self.current_song.url])
+            self.external_player + [self.current_song.url],
+            stdin=subprocess.PIPE)
         self.is_playing = True
 
     def stop(self):
