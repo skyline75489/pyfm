@@ -82,7 +82,6 @@ class Config(object):
                     self.last_fm_password = cache['last_fm_password']
                 except (KeyError, ValueError):
                     self.scrobbling = False
-
         except:
             logger.debug("Cache file not found.")
 
@@ -93,7 +92,7 @@ class Config(object):
         except IOError:
             raise Exception("Unable to write cache file")
 
-    def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None):
+    def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None, enable_notify=None):
         if not (user_name or last_fm_username):
             return
         try:
@@ -105,7 +104,8 @@ class Config(object):
                     'token': token,
                     'cookies': cookies,
                     'last_fm_username': last_fm_username,
-                    'last_fm_password': last_fm_password
+                    'last_fm_password': last_fm_password,
+                    'enable_notify': enable_notify,
                 }, f)
         except IOError:
             raise Exception("Unable to write cache file")
