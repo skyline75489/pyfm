@@ -37,6 +37,7 @@ class Config(object):
         self.expire = None
         self.token = None
         self.cookies = None
+        self.enable_notify = True
 
         self.last_fm_username = None
         self.last_fm_password = None
@@ -53,9 +54,9 @@ class Config(object):
         password = getpass('Last.fm 密码: ') or None
         if password is None:
             self.last_fm_password = None
-            return
-        else :
+        else:
             self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
+        self.enable_notify = input('是否允许系统通知? (Y/n)').lower() != "n"
 
     def load_config(self):
         try:
