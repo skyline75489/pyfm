@@ -37,6 +37,7 @@ class Config(object):
         self.expire = None
         self.token = None
         self.cookies = None
+        self.enable_notify = True
 
         self.last_fm_username = None
         self.last_fm_password = None
@@ -53,9 +54,9 @@ class Config(object):
         password = getpass('Last.fm 密码: ') or None
         if password is None:
             self.last_fm_password = None
-            return
-        else :
+        else:
             self.last_fm_password = md5(password.encode('utf-8')).hexdigest()
+        self.enable_notify = input('是否允许系统通知? (Y/n)').lower() != "n"
 
     def load_config(self):
         try:
@@ -81,6 +82,10 @@ class Config(object):
                 self.last_fm_password = cache['last_fm_password']
             except (KeyError, ValueError):
                 self.scrobbling = False
+            try:
+                self.enable_notify = cache["enable_notify"]
+            except (KeyError, ValueError):
+                pass
 
         except Exception as e:
             logger.debug("Cache file not found.")
@@ -93,10 +98,8 @@ class Config(object):
         except IOError:
             raise Exception("Unable to write cache file")
 
-    def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None):
+    def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None, enable_notify=None):
         f = None
-        if not (user_name or last_fm_username):
-            return
         try:
             f = open(self.account_cache_path, 'w')
             json.dump({
@@ -106,7 +109,8 @@ class Config(object):
                 'token': token,
                 'cookies': cookies,
                 'last_fm_username': last_fm_username,
-                'last_fm_password': last_fm_password
+                'last_fm_password': last_fm_password,
+                'enable_notify': enable_notify,
             }, f)
         except IOError:
             raise Exception("Unable to write cache file")
