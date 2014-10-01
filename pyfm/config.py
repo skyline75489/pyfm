@@ -59,54 +59,52 @@ class Config(object):
 
     def load_config(self):
         try:
-            f = open(self.channels_cache_path, 'r')
-            self.cached_channels = deque(json.load(f))
+            with open(self.channels_cache_path, 'r') as f:
+                self.cached_channels = deque(json.load(f))
             logger.debug("Load channel file.")
-        except Exception as e:
+        except:
             logger.debug("Channels file not found.")
 
         try:
-            f = open(self.account_cache_path, 'r')
-            cache = json.load(f)
-            try:
-                self.user_name = cache['user_name']
-                self.user_id = cache['user_id']
-                self.expire = cache['expire']
-                self.token = cache['token']
-                self.cookies = cache['cookies']
-            except (KeyError, ValueError):
-                self.douban_account = False
-            try:
-                self.last_fm_username = cache['last_fm_username']
-                self.last_fm_password = cache['last_fm_password']
-            except (KeyError, ValueError):
-                self.scrobbling = False
+            with open(self.account_cache_path, 'r') as f:
+                cache = json.load(f)
+                try:
+                    self.user_name = cache['user_name']
+                    self.user_id = cache['user_id']
+                    self.expire = cache['expire']
+                    self.token = cache['token']
+                    self.cookies = cache['cookies']
+                except (KeyError, ValueError):
+                    self.douban_account = False
+                try:
+                    self.last_fm_username = cache['last_fm_username']
+                    self.last_fm_password = cache['last_fm_password']
+                except (KeyError, ValueError):
+                    self.scrobbling = False
 
-        except Exception as e:
+        except:
             logger.debug("Cache file not found.")
 
     def save_channel_cache(self, channels):
-        f = None
         try:
-            f = open(self.channels_cache_path, 'w')
-            json.dump(list(channels), f)
+            with open(self.channels_cache_path, 'w') as f:
+                json.dump(list(channels), f)
         except IOError:
             raise Exception("Unable to write cache file")
 
     def save_account_cache(self, user_name=None, user_id=None, expire=None, token=None, cookies=None, last_fm_username=None, last_fm_password=None):
-        f = None
         if not (user_name or last_fm_username):
             return
         try:
-            f = open(self.account_cache_path, 'w')
-            json.dump({
-                'user_name': user_name,
-                'user_id': user_id,
-                'expire': expire,
-                'token': token,
-                'cookies': cookies,
-                'last_fm_username': last_fm_username,
-                'last_fm_password': last_fm_password
-            }, f)
+            with open(self.account_cache_path, 'w') as f:
+                json.dump({
+                    'user_name': user_name,
+                    'user_id': user_id,
+                    'expire': expire,
+                    'token': token,
+                    'cookies': cookies,
+                    'last_fm_username': last_fm_username,
+                    'last_fm_password': last_fm_password
+                }, f)
         except IOError:
             raise Exception("Unable to write cache file")
