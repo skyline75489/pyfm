@@ -112,7 +112,7 @@ class Doubanfm(object):
 
         # Refresh account cache
         self.config.save_account_cache(self.douban.user_name, self.douban.user_id, self.douban.expire, self.douban.token, self.douban.cookies,
-                                       self.last_fm_username, self.last_fm_password)
+                                       self.last_fm_username, self.last_fm_password, self.enable_notify)
 
     def _setup_ui(self):
         # Init terminal ui
@@ -184,8 +184,9 @@ class Doubanfm(object):
         self.current_song = Song(_song)
 
         # Post notification
-        Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
-                        self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
+        if self.enable_notify:
+            Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
+                            self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
         logger.debug(
             '{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
 
