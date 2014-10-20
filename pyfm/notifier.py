@@ -112,6 +112,9 @@ class Notifier(object):
             stderr=subprocess.STDOUT
         )
 
+        import time
+        time.sleep(0.5)
+
         subprocess.Popen([
             self.bin_path,
             '-i',
