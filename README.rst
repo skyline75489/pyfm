@@ -6,7 +6,11 @@
 
 使用Python编写的豆瓣FM命令行播放器
 
+类似项目： https://github.com/taizilongxu/douban.fm
+
+
 |Screenshot|
+
 
 特性
 ----
