@@ -97,7 +97,7 @@ class Notifier(object):
             print("Notify not available.")
             self.notify = self._notify_not_available
 
-    def _notify_not_available(self, **kwargs):
+    def _notify_not_available(self, *args, **kwargs):
         pass
 
     def _notify_send_notify(self, message, title=None, subtitle=None, appIcon=None, contentImage=None, open_URL=None, delay=0, sound=False):
