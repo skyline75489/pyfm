@@ -167,6 +167,31 @@ class Doubanfm(object):
         except KeyError:
             return self.config.__dict__[name]
 
+    # Some useful decorators
+    def current_song_required(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwds):
+            if self.current_song is None:
+                return
+            return f(self, *args, **kwds)
+        return wrapper
+
+    def last_fm_account_required(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwds):
+            if not self.scrobbling:
+                return
+            return f(self, *args, **kwds)
+        return wrapper
+
+    def douban_account_required(f):
+        @wraps(f)
+        def wrapper(self, *args, **kwds):
+            if not self.douban_account:
+                return
+            return f(self, *args, **kwds)
+        return wrapper
+
     def get_channels(self):
         if self.channels is None:
             try:
@@ -179,19 +204,32 @@ class Doubanfm(object):
         self.current_play_list = deque(
             self.douban.get_new_play_list(self.current_channel))
 
+    def extend_playlist_if_needed(self):
+        # Currently playing the second last song in queue
+        count_of_remaining_songs = len(self.current_play_list)
+        logger.debug(
+            '{0} tracks remaining in the playlist'.format(count_of_remaining_songs))
+        if count_of_remaining_songs == 1:
+            # Extend the playing list
+            playing_list = self.douban.get_playing_list(
+                self.current_song.sid, self.current_channel)
+            logger.debug('Got {0} more tracks'.format(len(playing_list)))
+            self.current_play_list.extend(deque(playing_list))
+
     def _play_track(self):
         _song = self.current_play_list.popleft()
         self.current_song = Song(_song)
 
-        # Post notification
-        if self.enable_notify:
-            Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
-                            self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
-        logger.debug(
-            '{0} tracks remaining in the playlist'.format(len(self.current_play_list)))
-
+        self.notify_now_playing()
         self.song_change_alarm = self.main_loop.set_alarm_in(self.current_song.length_in_sec,
                                                              self.next_song, None)
+        self.update_ui_for_now_playing()
+        self.scrobble_now_playing()
+        self.player.stop()  # Stop current song if any song is playing
+        self.player.play(self.current_song)
+        self.extend_playlist_if_needed()
+
+    def update_ui_for_now_playing(self):
         self.selected_button.set_text(self.selected_button.text[0:11].strip())
         heart = WHITE_HEART
         if self.current_song.like:
@@ -201,53 +239,31 @@ class Doubanfm(object):
         self.selected_button.set_text(self.selected_button.text + '                 ' + heart + '  ' +
                                       self.current_song.artist + ' - ' +
                                       self.current_song.song_title)
-        if self.scrobbling:
-            self.scrobbler.now_playing(self.current_song.artist, self.current_song.song_title,
-                                       self.current_song.album_title, self.current_song.length_in_sec)
 
-        self.player.stop()
-        self.player.play(self.current_song)
-        # Currently playing the second last song in queue
-        if len(self.current_play_list) == 1:
-            # Extend the playing list
-            playing_list = self.douban.get_playing_list(
-                self.current_song.sid, self.current_channel)
-            logger.debug('Got {0} more tracks'.format(len(playing_list)))
-            self.current_play_list.extend(deque(playing_list))
+    def notify_now_playing(self):
+        if self.enable_notify:
+            Notifier.notify("", self.current_song.song_title, self.current_song.artist + ' — ' +
+                            self.current_song.album_title, appIcon=self.current_song.picture, open_URL=self.current_song.album)
 
     def next_song(self, loop, user_data):
-        # Scrobble the track if scrobbling is enabled
-        # and total playback time of the track > 30s
-        if self.scrobbling and self.current_song.length_in_sec > 30:
-            self.scrobbler.submit(self.current_song.artist, self.current_song.song_title,
-                                  self.current_song.album_title, self.current_song.length_in_sec)
-
-        if self.douban_account:
-            r, err = self.douban.end_song(
-                self.current_song.sid, self.current_channel)
-            if r:
-                logger.debug('End song OK')
-            else:
-                logger.error(err)
+        self.submit_current_song()
+        self.end_current_song
         if self.song_change_alarm:
             self.main_loop.remove_alarm(self.song_change_alarm)
         self._play_track()
 
-    def current_song_required(f):
-        @wraps(f)
-        def wrapper(self, *args, **kwds):
-            if self.current_song is None:
-                return
-            return f(self, *args, **kwds)
-        return wrapper
+    @last_fm_account_required
+    def submit_current_song(self):
+        # Submit the track if scrobbling is enabled
+        # and total playback time of the track > 30s
+        if self.current_song.length_in_sec > 30:
+            self.scrobbler.submit(self.current_song.artist, self.current_song.song_title,
+                                  self.current_song.album_title, self.current_song.length_in_sec)
 
-    def douban_account_required(f):
-        @wraps(f)
-        def wrapper(self, *args, **kwds):
-            if not self.douban_account:
-                return
-            return f(self, *args, **kwds)
-        return wrapper
+    @last_fm_account_required
+    def scrobble_now_playing(self):
+        self.scrobbler.now_playing(self.current_song.artist, self.current_song.song_title,
+                                   self.current_song.album_title, self.current_song.length_in_sec)
 
     @current_song_required
     def skip_current_song(self):
@@ -285,6 +301,16 @@ class Doubanfm(object):
             self.selected_button.set_text(self.selected_button.text.replace(
                 BLACK_HEART, WHITE_HEART))
             logger.debug('Unrate song OK')
+        else:
+            logger.error(err)
+
+    @current_song_required
+    @douban_account_required
+    def end_current_song(self):
+        r, err = self.douban.end_song(
+            self.current_song.sid, self.current_channel)
+        if r:
+            logger.debug('End song OK')
         else:
             logger.error(err)
 
