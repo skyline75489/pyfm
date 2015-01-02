@@ -95,6 +95,7 @@
 Changelog
 ---------
 
+-  0.2.4 修复若干问题，支持关闭通知
 -  0.2.3 修复若干Bug，加入红心兆赫，支持使用mpv和mplayer作为播放后端(`felixonmars <https://github.com/felixonmars>`__)
 -  0.2.2 修复登陆失败时登陆状态不能正确显示的Bug
 -  0.2.1 修复Last.fm密码为空时报错的Bug
