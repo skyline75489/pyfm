@@ -14,24 +14,24 @@ from functools import wraps
 
 import urwid
 
-from pyfm.douban import Douban
-from pyfm.song import Song
-from pyfm.player import Player
-from pyfm.scrobbler import Scrobbler
-from pyfm.notifier import Notifier
-from pyfm.config import Config
-from pyfm.ui import ChannelButton, ChannelListBox
+from .douban import Douban
+from .song import Song
+from .player import Player
+from .scrobbler import Scrobbler
+from .notifier import Notifier
+from .config import Config
+from .ui import ChannelButton, ChannelListBox
 
 logger = logging.getLogger()
 
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 WHITE_HEART = u'\N{WHITE HEART SUIT}'
 BLACK_HEART = u'\N{BLACK HEART SUIT}'
 
 HELP = """
-pyfm 0.2.3   使用Python编写的豆瓣FM命令行播放器
+pyfm 0.2.4   使用Python编写的豆瓣FM命令行播放器
 
 更新或安装：
 $ [sudo] pip install pyfm --upgrade
@@ -86,12 +86,12 @@ class Doubanfm(object):
         self.douban = Douban(
             self.email, self.password, self.user_id, self.expire, self.token, self.user_name, self.cookies)
 
-        # Try to login
         if self.last_fm_username is None or self.last_fm_username == "":
             self.scrobbling = False
         if (self.email is None or self.email == "") and self.cookies == None:
             self.douban_account = False
 
+        # Try to login
         if self.scrobbling:
             self.scrobbler = Scrobbler(
                 self.last_fm_username, self.last_fm_password)
@@ -115,7 +115,7 @@ class Doubanfm(object):
                                        self.last_fm_username, self.last_fm_password, self.enable_notify)
 
     def _setup_ui(self):
-        # Init terminal ui
+        # Init terminal UI
         self.palette = [('selected', 'bold', 'default'),
                         ('title', 'yellow', 'default')]
         self.selected_button = None
@@ -165,6 +165,7 @@ class Doubanfm(object):
         try:
             return self.__dict__[name]
         except KeyError:
+            # Combine self.config.__dict__ and self.config.__dict__ for convenience
             return self.config.__dict__[name]
 
     # Some useful decorators
@@ -205,12 +206,11 @@ class Doubanfm(object):
             self.douban.get_new_play_list(self.current_channel))
 
     def extend_playlist_if_needed(self):
-        # Currently playing the second last song in queue
         count_of_remaining_songs = len(self.current_play_list)
         logger.debug(
             '{0} tracks remaining in the playlist'.format(count_of_remaining_songs))
         if count_of_remaining_songs == 1:
-            # Extend the playing list
+            # There is only one track remaining in queue, extend the playing list
             playing_list = self.douban.get_playing_list(
                 self.current_song.sid, self.current_channel)
             logger.debug('Got {0} more tracks'.format(len(playing_list)))
@@ -225,7 +225,8 @@ class Doubanfm(object):
                                                              self.next_song, None)
         self.update_ui_for_now_playing()
         self.scrobble_now_playing()
-        self.player.stop()  # Stop current song if any song is playing
+        # Stop current song if any song is playing
+        self.player.stop()  
         self.player.play(self.current_song)
         self.extend_playlist_if_needed()
 
@@ -254,8 +255,7 @@ class Doubanfm(object):
 
     @last_fm_account_required
     def submit_current_song(self):
-        # Submit the track if scrobbling is enabled
-        # and total playback time of the track > 30s
+        # Submit the track if total playback time of the track > 30s
         if self.current_song.length_in_sec > 30:
             self.scrobbler.submit(self.current_song.artist, self.current_song.song_title,
                                   self.current_song.album_title, self.current_song.length_in_sec)
@@ -338,14 +338,13 @@ class Doubanfm(object):
         return ChannelListBox(urwid.SimpleFocusListWalker(body))
 
     def on_channel_chosen(self, button, choice):
-        # Choose the channel which is playing right now
-        # ignore this
+        # Choose the channel which is playing right now, ignore it
         if self.selected_button == button:
             return
-        # Choose a different channel
         if self.player.is_playing:
             self.player.stop()
         self._choose_channel(choice)
+        # Update UI
         if self.selected_button != None and button != self.selected_button:
             self.selected_button.set_text(
                 self.selected_button.text[0:11].strip())
