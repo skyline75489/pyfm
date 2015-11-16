@@ -1,6 +1,8 @@
 豆瓣FM命令行播放器
 ==================
 
+2015-11-16 更新：豆瓣客户端接口被封锁，本项目处于不可用状态。
+
 .. image:: https://badge.fury.io/py/pyfm.png
     :target: http://badge.fury.io/py/pyfm
 
