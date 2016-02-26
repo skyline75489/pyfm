@@ -2,7 +2,8 @@
 ==================
 
 **2015-11-16 更新：豆瓣客户端接口被封锁，本项目处于不可用状态。**
-**可用的类似项目（目前使用网易）： https://github.com/taizilongxu/douban.fm**
+
+**可用的类似项目（目前使用网易云音乐）： https://github.com/taizilongxu/douban.fm**
 
 .. image:: https://badge.fury.io/py/pyfm.png
     :target: http://badge.fury.io/py/pyfm
